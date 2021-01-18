@@ -45,23 +45,23 @@ julia> DT = AlphaStructures.delaunayTriangulation(V)
  [1, 2, 3, 4]
 ```
 """
-function delaunayTriangulation(V::Lar.Points)::Lar.Cells
-	dim = size(V, 1)
-	@assert dim > 0 "delaunayTriangulation: V do not contains points."
-	@assert dim < 4 "delaunayTriangulation: Function not yet Programmed."
-
-
-	if dim == 1
-		vertices = vcat(V...)
-		p = sortperm(vertices)
-		upper_simplex = [[p[i],p[i+1]] for i=1:length(p)-1]
-		return sort(sort.(upper_simplex))
-	else
-		upper_simplex = delaunayMATLAB(V)
-		return sort(sort.(upper_simplex))
-	end
-
-end
+#function delaunayTriangulation(V::Lar.Points)::Lar.Cells
+#	dim = size(V, 1)
+#	@assert dim > 0 "delaunayTriangulation: V do not contains points."
+#	@assert dim < 4 "delaunayTriangulation: Function not yet Programmed."
+#
+#
+#	if dim == 1
+#		vertices = vcat(V...)
+#		p = sortperm(vertices)
+#		upper_simplex = [[p[i],p[i+1]] for i=1:length(p)-1]
+#		return sort(sort.(upper_simplex))
+#	else
+#		upper_simplex = delaunayMATLAB(V)
+#		return sort(sort.(upper_simplex))
+#	end
+#
+#end
 
 
 """
@@ -69,20 +69,20 @@ end
 
 Delaunay triangulation algorithm in MATLAB.
 """
-function delaunayMATLAB(V::Lar.Points)
-
-	dim = size(V,1)
-	@assert dim <=3 "delaunayMATLAB: input points have invalid dimension."
-
-	W = convert(Lar.Points,V')
-	@mput W
-	mat"DT = delaunay(W)"
-	@mget DT
-	DT = convert(Array{Int64,2},DT)
-	DT = [DT[i,:] for i in 1:size(DT,1)]
-
-	return DT
-end
+#function delaunayMATLAB(V::Lar.Points)
+#
+#	dim = size(V,1)
+#	@assert dim <=3 "delaunayMATLAB: input points have invalid dimension."
+#
+#	W = convert(Lar.Points,V')
+#	@mput W
+#	mat"DT = delaunay(W)"
+#	@mget DT
+#	DT = convert(Array{Int64,2},DT)
+#	DT = [DT[i,:] for i in 1:size(DT,1)]
+#
+#	return DT
+#end
 
 
 # function delaunayTriangulation(points::Lar.Points)
@@ -95,3 +95,30 @@ end
 # function delaunayTriangulation(V::Lar.Points)::Lar.Cells
 # 	return delaunayMATLAB(V)
 # end
+
+
+#---------------------------------- OLD --------------------------------------
+function delaunayTriangulation(V::Lar.Points)::Lar.Cells
+	dim = size(V, 1)
+	@assert dim > 0 "delaunayTriangulation: V do not contains points."
+	@assert dim < 4 "delaunayTriangulation: Function not yet Programmed."
+
+	if dim == 1
+		vertices = vcat(V...)
+		p = sortperm(vertices)
+		upper_simplex = [[p[i],p[i+1]] for i=1:length(p)-1]
+
+	elseif dim == 2
+		vertices = convert(Array{Float64,2},V')
+		points_map = Array{Int64,1}(collect(1:1:size(vertices)[1]))
+		@assert size(vertices, 1) > 3
+		upper_simplex = Triangle.basic_triangulation(vertices, points_map)
+
+	elseif dim == 3
+		upper_simplex = AlphaStructures.delaunayWall(V)
+	end
+
+	sort!.(upper_simplex)
+
+	return sort(upper_simplex)
+end

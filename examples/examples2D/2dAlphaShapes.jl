@@ -1,6 +1,6 @@
 #using AlphaStructures
 
-include("/Users/luigibevilacqua/Downloads/AlphaStructures.jl-master/src/AlphaStructures.jl")
+include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
 
 using LinearAlgebraicRepresentation, ViewerGL
 Lar = LinearAlgebraicRepresentation
@@ -38,7 +38,7 @@ function pointsRand(
 	return Vi[:,2:end], Ve[:,2:end], VVi, VVe
 end
 
-filename = "/Users/luigibevilacqua/Downloads/AlphaStructures.jl-master/examples/examples2D/svg_files/Lar2.svg";
+filename = "/Users/luigibevilacqua/Desktop/AlphaShapes/examples/examples2D/svg_files/Lar2.svg";
 
 #filename = "examples/examples2D/svg_files/Lar2.svg";
 V,EV = Lar.svg2lar(filename);
