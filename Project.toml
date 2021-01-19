@@ -21,7 +21,7 @@ test = ["Test"]
 
 
 # added deps
-[deps]
+#[deps]
 #Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
 #DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 #Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
