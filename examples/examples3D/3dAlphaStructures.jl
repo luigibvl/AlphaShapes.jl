@@ -1,10 +1,13 @@
-using AlphaStructures
+#using AlphaStructures
+include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
+
 using LinearAlgebraicRepresentation, ViewerGL
 Lar = LinearAlgebraicRepresentation
 GL = ViewerGL
+using TimerOutputs
 
 #filename = "./OBJ/lowpolytree.obj";
-filename = "examples/examples3D/OBJ/teapot.obj";
+filename = "/Users/luigibevilacqua/Desktop/AlphaShapes/examples/examples3D/OBJ/teapot.obj";
 W,EVs,FVs = Lar.obj2lar(filename);
 WW = [[i] for i = 1 : size(W, 2)];
 V,VV = Lar.apply(Lar.r(pi/2, 0, 0), (W, WW)); #object rotated
@@ -45,3 +48,5 @@ for α in reduced_filter
 		)
 	)
 end
+
+print_timer(AlphaStructures.to);

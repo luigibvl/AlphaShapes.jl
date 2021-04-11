@@ -1,4 +1,5 @@
 export delaunayWall;
+using Base.Threads
 #===============================================================================
 #
 #	src/deWall.jl
@@ -98,7 +99,7 @@ julia> DT = AlphaStructures.delaunayWall(P)
 ```
 """
 
-function delaunayWall(
+@timeit to "delaunayWall" function delaunayWall(
 		P::Lar.Points,
 		ax = 1,
 		Pblack = Float64[],
@@ -114,17 +115,21 @@ function delaunayWall(
 	AFLα = Array{Int64,1}[]		# (d-1)faces intersecting the Wall
 	AFLplus = Array{Int64,1}[]  # (d-1)faces in positive Wall half-space
 	AFLminus = Array{Int64,1}[] # (d-1)faces in positive Wall half-space
-	off = AlphaStructures.findMedian(P, ax)
+	off = @spawn AlphaStructures.findMedian(P, ax)
+	off = fetch(off)
+
 	if !isempty(Pblack) Pext = [P Pblack] else Pext = copy(P) end
 
 	# 1 - Determine first simplex (if necessary)
 	if isempty(AFL)
 		@assert isempty(Pblack) "delaunayWall: If AFL is empty => Pblack must be"
 		@assert isempty(tetraDict) "delaunayWall: If AFL is empty => tetraDict must be"
-		σ = sort(AlphaStructures.firstDeWallSimplex(P, ax, off, DEBUG = DEBUG))
+		σ = @spawn sort(AlphaStructures.firstDeWallSimplex(P, ax, off, DEBUG = DEBUG))
+		σ = fetch(σ)
 		push!(DT, σ)
-		AFL = AlphaStructures.simplexFaces(σ)
-		AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
+		AFL = @spawn AlphaStructures.simplexFaces(σ)
+		AFL = fetch(AFL)
+		 AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
 	else
 		@assert !isempty(Pblack) "delaunayWall: Data missing - Pblack"
 		@assert !isempty(AFL) "delaunayWall: Data missing - AFL"
@@ -132,7 +137,8 @@ function delaunayWall(
 	end
 
 	# 2 - Build `AFL*` according to the axis `ax` with constant term `off`
-	AlphaStructures.updateAFL!(
+	#Threads.@spawn
+	 AlphaStructures.updateAFL!(
 		P, AFL, AFLα, AFLplus, AFLminus, ax, off, DEBUG = DEBUG
 	)
 
@@ -140,12 +146,15 @@ function delaunayWall(
 	while !isempty(AFLα)
 		# if face ∈ keys(tetraDict) oppoint = tetraDict[face]
 		# else Pselection = setdiff([i for i = 1 : n], face) end
-		σ = AlphaStructures.findWallSimplex(
+		σ = @spawn AlphaStructures.findWallSimplex(
 				Pext, AFLα[1], tetraDict[AFLα[1]], size(P, 2), DEBUG = DEBUG
 			)
+		σ = fetch(σ)
 		if σ != nothing && σ ∉ DT
 			push!(DT, σ)
-			AFL = AlphaStructures.simplexFaces(σ)
+			AFL = @spawn AlphaStructures.simplexFaces(σ)
+			AFL = fetch(AFL)
+
 			AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
 			# Split σ's Faces according in semi-spaces
 			AlphaStructures.updateAFL!(
@@ -160,12 +169,12 @@ function delaunayWall(
 	# 5 - Change the axis `ax` and repeat until there are no faces but exposed.
 	#      A.K.A. Divide & Conquer phase.
 	if !isempty(AFLminus)
-		union!(DT, recursiveDelaunayWall(
+		 union!(DT, recursiveDelaunayWall(
 			P, Pblack, tetraDict, AFLminus, ax, off, false; DEBUG = DEBUG
 		))
 	end
 	if !isempty(AFLplus)
-		union!(DT, recursiveDelaunayWall(
+		 union!(DT, recursiveDelaunayWall(
 			P, Pblack, tetraDict, AFLplus, ax, off, true; DEBUG = DEBUG
 		))
 	end
@@ -206,7 +215,7 @@ julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 
 ```
 """
-function findWallSimplex(
+@timeit to "findWallSimplex" function findWallSimplex(
 		P::Lar.Points,
 		face::Array{Int64,1},
 		oppoint::Array{Float64,1},
@@ -293,7 +302,7 @@ julia> firstDeWallSimplex(V, 1, AlphaStructures.findMedian(V,1))
 
 ```
 """
-function firstDeWallSimplex(
+@timeit to "firstDeWallSimplex" function firstDeWallSimplex(
 		P::Lar.Points,
 		ax::Int64,
 		off::Float64;
@@ -366,7 +375,7 @@ Returns the Delaunay Triangulation for the positve or negative subspace of `P`
 constant term `off`.
 If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 """
-function recursiveDelaunayWall(
+@timeit to "recursiveDelaunayWall" function recursiveDelaunayWall(
 		P::Lar.Points,
 		Pblack::Array{Float64},
 		tetraDict::DataStructures.Dict{Array{Int64,1},Array{Float64,1}},
@@ -433,7 +442,7 @@ to the axis defined by the normal direction `ax` and the contant term `off`.
 The function returns a Bool value that states if the operation was succesfully.
 If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 """
-function updateAFL!(
+@timeit to "updateAFL!" function updateAFL!(
 		P::Lar.Points,
 		newσ::Array{Array{Int64,1},1},
 		AFLα::Array{Array{Int64,1},1},
@@ -497,7 +506,7 @@ julia> list
 ```
 """
 
-function updatelist!(list, element)::Bool
+@timeit to "updatelist!" function updatelist!(list, element)::Bool
 	if element ∈ list
 		setdiff!(list, [element])
 		return false
@@ -520,7 +529,7 @@ end
 Update the content of `tetraDict` by adding the outer points of the faces of `σ`
 in the dictionary.
 """
-function updateTetraDict!(
+@timeit to "updateTetraDict" function updateTetraDict!(
 		P::Lar.Points,
 		tetraDict::DataStructures.Dict{Array{Int64,1},Array{Float64,1}},
 		AFL::Array{Array{Int64,1},1},

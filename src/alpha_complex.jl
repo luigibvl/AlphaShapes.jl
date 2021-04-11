@@ -67,7 +67,7 @@ SortedMultiDict(Base.Order.ForwardOrdering(),
 """
 
 
-function alphaFilter(
+@timeit to "alphaFilter" function alphaFilter(
 		V::Lar.Points,
 		DT = Array{Int64,1}[];
 		digits=64
@@ -78,8 +78,8 @@ function alphaFilter(
 	filtration = DataStructures.SortedDict{Array{Int64,1},Float64}()
 
 	# 1 - Each point => alpha_char = 0.
-	for i = 1 : size(V, 2)
-		insert!(filtration, [i], 0.)
+	@sync for i = 1 : size(V, 2)
+		@async insert!(filtration, [i], 0.)
 	end
 
 	# 2 - Delaunay triangulation of ``V``
@@ -91,11 +91,11 @@ function alphaFilter(
 
 	# 3 - process all upper simplex
 	ind = 1
-	for upper_simplex in DT
+	@simd for upper_simplex in DT
 		if ind % 500000 == 0
 			println(ind," simplices processed of ", n_upsimplex)
 		end
-		AlphaStructures.processuppersimplex(V,upper_simplex,filtration; digits = digits)
+		@sync AlphaStructures.processuppersimplex(V,upper_simplex,filtration; digits = digits)
 		ind = ind + 1
 	end
 
@@ -113,7 +113,7 @@ end
 
 Process the upper simplex.
 """
-function processuppersimplex(
+@timeit to "processuppersimplex" function processuppersimplex(
 		V::Lar.Points,
 		up_simplex::Array{Int64,1},
 		filtration::DataStructures.SortedDict{};
@@ -144,7 +144,7 @@ end
 
 Process the lower simplex knowing the upper.
 """
-function processlowsimplex(
+@timeit to "processlowsimplex" function processlowsimplex(
 	V::Lar.Points,
 	up_simplex::Array{Int64,1},
 	lowsimplex::Array{Int64,1},
@@ -184,7 +184,7 @@ end
 Return collection of all `d`-simplex, for `d ∈ [0,dimension]`,
 	with characteristic α less than a given value `α_threshold`.
 """
-function alphaSimplex(
+@timeit to "alphaSimplex" function alphaSimplex(
 		V::Lar.Points,
 		filtration::DataStructures.SortedDict{},
 		α_threshold::Float64

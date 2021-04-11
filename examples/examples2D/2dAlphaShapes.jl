@@ -3,6 +3,7 @@
 include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
 
 using LinearAlgebraicRepresentation, ViewerGL
+using TimerOutputs
 Lar = LinearAlgebraicRepresentation
 GL =  ViewerGL
 
@@ -45,22 +46,23 @@ V,EV = Lar.svg2lar(filename);
 
 Vi, Ve, VVi, VVe = pointsRand(V, EV, 1000, 10000);
 
-GL.VIEW([
-	GL.GLGrid(Vi, VVi, GL.COLORS[1], 1)
-	GL.GLGrid(Ve, VVe, GL.COLORS[12], 1)
-])
+# GL.VIEW([
+# 	GL.GLGrid(Vi, VVi, GL.COLORS[1], 1)
+# 	GL.GLGrid(Ve, VVe, GL.COLORS[12], 1)
+# ])
 
 
 AlphaStructures.tt("ciao!tt")
 AlphaStructures.ttt("ciao!ttt")
-
 filtration = AlphaStructures.alphaFilter(Vi);
 VV,EV,FV = AlphaStructures.alphaSimplex(Vi, filtration, 0.02)
 
 points = [[p] for p in VV]
 faces = [[f] for f in FV]
 edges = [[e] for e in EV]
-GL.VIEW( GL.GLExplode(Vi, [edges; faces], 1.5, 1.5, 1.5, 99, 1) );
+#GL.VIEW(
+GL.GLExplode(Vi, [edges; faces], 1.5, 1.5, 1.5, 99, 1)
+# );
 
 filter_key = sort(unique(values(filtration)))
 
@@ -103,5 +105,7 @@ for i = 2 : length(reduced_filter)
 	FV0mesh = GL.GLGrid(Vi, FV0)
 	EVmesh = GL.GLGrid(Vi, setdiff(EV, EV0), GL.COLORS[2], 1)
 	FVmesh = GL.GLGrid(Vi, setdiff(FV, FV0), GL.COLORS[7], 1)
-	GL.VIEW([EV0mesh; FV0mesh; EVmesh; FVmesh])
+	#GL.VIEW([EV0mesh; FV0mesh; EVmesh; FVmesh])
 end
+
+print_timer(AlphaStructures.to);

@@ -98,7 +98,7 @@ Delaunay triangulation algorithm in MATLAB.
 
 
 #---------------------------------- OLD --------------------------------------
-function delaunayTriangulation(V::Lar.Points)::Lar.Cells
+@timeit to "delaunayTriangulation" function delaunayTriangulation(V::Lar.Points)::Lar.Cells
 	dim = size(V, 1)
 	@assert dim > 0 "delaunayTriangulation: V do not contains points."
 	@assert dim < 4 "delaunayTriangulation: Function not yet Programmed."
