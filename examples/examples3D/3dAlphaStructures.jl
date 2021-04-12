@@ -2,6 +2,8 @@
 include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
 
 using LinearAlgebraicRepresentation, ViewerGL
+using BenchmarkTools
+
 Lar = LinearAlgebraicRepresentation
 GL = ViewerGL
 using TimerOutputs
@@ -17,6 +19,7 @@ GL.VIEW([
     GL.GLPoints(points)
 	GL.GLAxis(GL.Point3d(-1, -1, -1), GL.Point3d(1, 1, 1))
 ]);
+
 
 filtration = AlphaStructures.alphaFilter(V);
 VV, EV, FV, TV = AlphaStructures.alphaSimplex(V, filtration, 3.7)
@@ -36,13 +39,15 @@ granular = 10
 reduced_filter = filter_key[sort(abs.(rand(Int, granular).%length(filter_key)))]
 reduced_filter = [reduced_filter; max(filter_key...)]
 
+
 for α in reduced_filter
+	#@code_warntype AlphaStructures.alphaSimplex(V, filtration, α)
 	@show α
-	VV,EV,FV,TV = AlphaStructures.alphaSimplex(V, filtration, α)
+	VVV,EEV,FFV,TTV = AlphaStructures.alphaSimplex(V, filtration, α)
 	GL.VIEW(
 		GL.GLExplode(
 			V,
-			[[[t] for t in TV]; [[f] for f in FV]; [[e] for e in EV]],
+			[[[t] for t in TTV]; [[f] for f in FFV]; [[e] for e in EEV]],
 			1., 1., 1.,	# Explode Ratio
 			99, 1		# Colors
 		)

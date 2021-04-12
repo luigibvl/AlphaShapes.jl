@@ -78,8 +78,8 @@ SortedMultiDict(Base.Order.ForwardOrdering(),
 	filtration = DataStructures.SortedDict{Array{Int64,1},Float64}()
 
 	# 1 - Each point => alpha_char = 0.
-	@sync for i = 1 : size(V, 2)
-		@async insert!(filtration, [i], 0.)
+	for i = 1 : size(V, 2)
+		insert!(filtration, [i], 0.)
 	end
 
 	# 2 - Delaunay triangulation of ``V``
