@@ -82,7 +82,7 @@ julia> AlphaStructures.findCenter(V)
 
 ```
 """
-function findCenter(P::Lar.Points)::Array{Float64,1}
+@timeit to "findCenter" function findCenter(P::Lar.Points)::Array{Float64,1}
 	dim, n = size(P)
 	@assert n > 0		"findCenter: at least one points is needed."
 	@assert dim >= n-1	"findCenter: Too much points"
@@ -152,7 +152,7 @@ Possible choices are:
  - `dd`: like `circumcenter` but the circumradius is considered to be negative
     if the circumcenter is opposite to the new point with respect to `Psimplex`.
 """
-function findClosestPoint(
+@timeit to "findClosestPoint" function findClosestPoint(
 		Psimplex::Lar.Points, P::Lar.Points;
 		metric = "circumcenter"
 	)::Union{Int64, Nothing}
@@ -196,7 +196,7 @@ end
 
 Returns the median of the `P` points across the `ax` axis
 """
-function findMedian(P::Lar.Points, ax::Int64)::Float64
+@timeit to "findMedian" function findMedian(P::Lar.Points, ax::Int64)::Float64
 	xp = sort(unique(P[ax, :]))
 	if length(xp) == 1
 		median = xp[1]
@@ -241,7 +241,7 @@ julia> AlphaStructures.findRadius(V, true)
 
 ```
 """
-function findRadius(
+@timeit to "findRadius" function findRadius(
 		P::Lar.Points, center=false; digits=64
 	)::Union{Float64, Tuple{Float64, Array{Float64,1}}}
 
@@ -291,7 +291,7 @@ julia> AlphaStructures.matrixPerturbation(V)
   7.01741e-11  -4.10229e-11  -4.36708e-11  1.0
 
 """
-function matrixPerturbation(
+@timeit to "matrixPerturbation" function matrixPerturbation(
 		M::Array{Float64,2};
 		atol=1e-10, row = [0], col = [0]
 	)::Array{Float64,2}
@@ -351,7 +351,7 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 
 ```
 """
-function oppositeHalfSpacePoints(
+@timeit to "oppositeHalfSpacePoints" function oppositeHalfSpacePoints(
 		P::Lar.Points,
 		face::Array{Float64,2},
 		point::Array{Float64,1}
@@ -423,7 +423,7 @@ the normal `axis` and the contant term `off`. It returns:
  - `+1` if `f` is completely contained in the positive half space of `α`
  - `-1` if `f` is completely contained in the negative half space of `α`
 """
-function planarIntersection(
+@timeit to "planarIntersection" function planarIntersection(
 		P::Lar.Points,
 		face::Array{Int64,1},
 		axis::Int64,
@@ -468,7 +468,7 @@ julia> AlphaStructures.implexFaces(σ)
 
 ```
 """
-function simplexFaces(σ::Array{Int64,1})::Array{Array{Int64,1},1}
+@timeit to "simplexFaces" function simplexFaces(σ::Array{Int64,1})::Array{Array{Int64,1},1}
     sort!(sort!.(collect(Combinatorics.combinations(σ, length(σ)-1))))
 end
 
@@ -485,7 +485,7 @@ Determine if a point is inner of the circumball determined by `P` points
 	and radius `α_char`.
 
 """
-function vertexInCircumball(
+@timeit to "vertexInCircumball" function vertexInCircumball(
 		P::Lar.Points,
 		α_char::Float64,
 		point::Array{Float64,2}
