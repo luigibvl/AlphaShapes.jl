@@ -1,3 +1,4 @@
+using Base.Threads
 #===============================================================================
 #
 #	src/geometry.jl
@@ -106,15 +107,16 @@ julia> AlphaStructures.findCenter(V)
 
 		elseif dim == 3
 			#circumcenter of a triangle in R^3
-			numer = Lar.norm(P[:, 3] - P[:, 1])^2 * Lar.cross(
+			numer =Threads.@spawn Lar.norm(P[:, 3] - P[:, 1])^2 * Lar.cross(
 						Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]),
 						P[:, 2] - P[:, 1]
 					) +
-					Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
+					Threads.@spawn Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
 				  		P[:, 3] - P[:, 1],
-						Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]
+						Threads.@spawn Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]
 					)
 			)
+			numer=fetch(numer)
 			denom = 2 * Lar.norm(
 				Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])
 			)^2
@@ -125,7 +127,8 @@ julia> AlphaStructures.findCenter(V)
 		# https://people.sc.fsu.edu/~jburkardt/presentations
 		#	/cg_lab_tetrahedrons.pdf
 		# page 6 (matrix are transposed)
-		α = Lar.det([P; ones(1, 4)])
+		α =Threads.@spawn Lar.det([P; ones(1, 4)])
+		α = fetch(α)
 		sq = sum(abs2, P, dims = 1)
 		Dx = Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
 		Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
