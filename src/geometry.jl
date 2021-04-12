@@ -117,9 +117,10 @@ julia> AlphaStructures.findCenter(V)
 					)
 			)
 			numer=fetch(numer)
-			denom = 2 * Lar.norm(
-				Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])
-			)^2
+			denom = 2 * (Threads.@spawnLar.norm(
+				Threads.@spawn Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])
+			))^2
+			denom=fetch(denom)
 			center = P[:, 1] + numer / denom
 		end
 
@@ -128,11 +129,14 @@ julia> AlphaStructures.findCenter(V)
 		#	/cg_lab_tetrahedrons.pdf
 		# page 6 (matrix are transposed)
 		α =Threads.@spawn Lar.det([P; ones(1, 4)])
-		α = fetch(α)
+		α=fetch(α)
 		sq = sum(abs2, P, dims = 1)
-		Dx = Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
-		Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
-		Dz = Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
+		Dx = Threads.@spawn Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
+		Dx= fetch(Dx)
+		Dy =Threads.@spawn Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
+		Dy= fetch(Dy)
+		Dz =Threads.@spawn Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
+		Dz=fetch(Dz)
 		center = [Dx; Dy; Dz]/2α
 	end
 
@@ -171,7 +175,9 @@ Possible choices are:
 
 	radlist = SharedArray{Float64}(m)
 	@sync @distributed for col = 1 : m
-		r, c = findRadius([Psimplex P[:,col]], true)
+		r, c = Threads.@spawn findRadius([Psimplex P[:,col]], true)
+		   r= fetch(r)
+		   c=fetch(c)
 		sameSign = (
 			r == Inf ||
 			metric != "dd" ||
@@ -182,7 +188,9 @@ Possible choices are:
 		radlist[col] = ((-1)^(1 + sameSign)) * r
 	end
 
-	radius, closestidx = findmin(radlist)
+	radius, closestidx =Threads.@spawn findmin(radlist)
+	radius=fetch(radius)
+	closestidx=fetch(closestidx)
 
 	if radius == Inf
 		closestidx = nothing
@@ -391,12 +399,15 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 
 
 	elseif dim == 3
-		axis = Lar.cross(
+		axis =Threads.@spawn Lar.cross(
 			face[:, 2] - face[:, 1],
 			face[:, 3] - face[:, 1]
 		)
-		off = Lar.dot(axis, face[:, 1])
-		position = Lar.dot(point, axis)
+		axis=fetch(axis)
+		off =Threads.@spawn Lar.dot(axis, face[:, 1])
+		off=fetch(off)
+		position =Threads.@spawn Lar.dot(point, axis)
+		position=fetch(position)
 		if position < off
 			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
 		else
@@ -473,7 +484,7 @@ julia> AlphaStructures.implexFaces(σ)
 ```
 """
 @timeit to "simplexFaces" function simplexFaces(σ::Array{Int64,1})::Array{Array{Int64,1},1}
-    sort!(sort!.(collect(Combinatorics.combinations(σ, length(σ)-1))))
+    Threads.@spawn sort!(sort!.(collect(Combinatorics.combinations(σ, length(σ)-1))))
 end
 
 #-------------------------------------------------------------------------------
