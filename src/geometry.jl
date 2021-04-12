@@ -241,7 +241,6 @@ julia> AlphaStructures.findRadius(V, true)
 
 ```
 """
-
 @timeit to "findRadius" function findRadius(
 		P::Lar.Points, center=false; digits=64
 	)::Union{Float64, Tuple{Float64, Array{Float64,1}}}
