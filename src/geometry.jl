@@ -117,7 +117,7 @@ julia> AlphaStructures.findCenter(V)
 					)
 			)
 			numer=fetch(numer)
-			denom = 2 * (Threads.@spawnLar.norm(
+			denom = 2 * (Threads.@spawn Lar.norm(
 				Threads.@spawn Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])
 			))^2
 			denom=fetch(denom)
@@ -255,16 +255,24 @@ julia> AlphaStructures.findRadius(V, true)
 @timeit to "findRadius" function findRadius(
 		P::Lar.Points, center=false; digits=64
 	)::Union{Float64, Tuple{Float64, Array{Float64,1}}}
-
+	minNorms=0
+	norm=[]
  	c = AlphaStructures.findCenter(P)
 
 	if any(isnan, c)
 		r = Inf
 	else
-		r = round(
-			findmin([Lar.norm(c - P[:, i]) for i = 1 : size(P, 2)])[1],
-			digits = digits
-		)
+		#per paralellizzare il metodo abbiamo trasformato questo codice nel
+		#codice che segue
+		#r = round(
+		#	findmin([Lar.norm(c - P[:, i]) for i = 1 : size(P, 2)])[1],
+		#	digits = digits
+		#)
+		for i = 1 : size(P, 2)
+			 push!(norm,Lar.norm(c - P[:, i]))
+		end
+		minNorms = findmin(norm)
+		r = round(minNorms[1],digits = digits)
 	end
 	if center
 		return r, c
@@ -314,10 +322,22 @@ julia> AlphaStructures.matrixPerturbation(V)
 	end
 
 	if row == [0]
-		row = [i for i = 1 : size(M, 1)]
+		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
+		#codice che segue
+		#row = [i for i = 1 : size(M, 1)]
+		row=[0]
+		for i=1 : size(M,1)
+			push!(row,i)
+		end
 	end
 	if col == [0]
-		col = [i for i = 1 : size(M, 2)]
+		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
+		#codice che segue
+		#col = [i for i = 1 : size(M, 2)]
+		for i=1 :size(M,2)
+			col=[]
+			push!(col,i)
+		end
 	end
 
 	N = copy(M)
@@ -376,10 +396,25 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		Cannot determine opposite to non hyperplanes."
 	if dim == 1
 		threshold = face[1]
+		opposite=[]
 		if point[1] < threshold
-			opposite = [i for i = 1 : n if P[1, i] > threshold]
+			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
+			#codice che segue
+			#opposite = [i for i = 1 : n if P[1, i] > threshold]
+			for i=1 : n
+				if P[1,i] > threshold
+					push!(opposite,i)
+				end
+			end
 		else
-			opposite = [i for i = 1 : n if P[1, i] < threshold]
+			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
+			#codice che segue
+			#opposite = [i for i = 1 : n if P[1, i] < threshold]
+			for i =1 : n
+				if P[1,i]> threshold
+					push!(opposite,i)
+				end
+			end
 		end
 	elseif dim == 2
 		if (Δx = face[1, 1] - face[1, 2]) != 0.0
@@ -389,12 +424,24 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			@assert point[2] ≠ m * point[1] + q "oppositeHalfSpacePoints,
 				the point belongs to the face"
 			side = sign(m * point[1] + q - point[2])
-			opposite =
-				[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
+			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
+			#codice che segue
+			#opposite =
+				#[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
+			for i=1 : n
+				if side * (m * P[1, i] + q - P[2, i]) < 0
+					push!(opposite,i)
+				end
+			end
 		else
 			q = face[1, 1]
 			side = sign(point[1] - q)
-			opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
+			#opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
+			for i = 1 : n
+				if side * (P[1, i] - q) < 0
+					push!(opposite,i)
+				end
+			end
 		end
 
 
@@ -408,17 +455,41 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		off=fetch(off)
 		position =Threads.@spawn Lar.dot(point, axis)
 		position=fetch(position)
+		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
+		#codice che segue
 		if position < off
-			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
+			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
+			for i=1 : size(P,2)
+				if Lar.dot(P[:,i], axis) > off
+					push!(opposite,i)
+				end
+			end
 		else
-			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
+			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
+			for i = 1:size(P, 2)
+				if Lar.dot(P[:,i], axis) < off
+					push!(opposite,i)
+				end
+			end
 		end
 	end
 
-	return [
-		i for i in opposite
-		if sum([P[:, i] == face[:, j] for j = 1 : noV]) == 0
-	]
+	#return [
+	#	i for i in opposite
+	#	if sum([P[:, i] == face[:, j] for j = 1 : noV]) == 0
+	#]
+	faces=[]
+	for i in opposite
+		for j = 1 : noV
+			if P[: , i] == face[:,j]
+				faces+=1
+			end
+		end
+		if faces == 0
+			return i
+		end
+	end
+
 
 end
 
@@ -444,11 +515,24 @@ the normal `axis` and the contant term `off`. It returns:
 		axis::Int64,
 		off::Float64
 	)::Int64
+	#per paralellizzare il metodo abbiamo trasformato questo codice nel
+	#codice che segue
 
-	pos = [P[axis, i] > off for i in face]
+	#pos = [P[axis, i] > off for i in face]
+	for i in face
+		pos=[P[axis,i] > off]
+	end
+	#if sum([P[axis, i] == off for i in face]) == length(pos)
+	S=0
+	for i in face
+		if P[axis,i] == off
+			S+=1
+		end
+	end
+		#position = 0 # face coplanar with axis
+	if S==length(pos)
+		position= 0
 
-	if sum([P[axis, i] == off for i in face]) == length(pos)
-		position = 0 # face coplanar with axis
 	elseif sum(pos) == 0
 		position = -1
 	elseif sum(pos) == length(pos)
