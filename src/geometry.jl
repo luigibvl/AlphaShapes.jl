@@ -570,7 +570,6 @@ julia> AlphaStructures.implexFaces(σ)
  [1, 2, 4]
  [1, 3, 4]
  [2, 3, 4]
-
 ```
 """
 @timeit to "simplexFaces" function simplexFaces(σ::Array{Int64,1})::Array{Array{Int64,1},1}
