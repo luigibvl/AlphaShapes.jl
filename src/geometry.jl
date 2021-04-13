@@ -421,7 +421,7 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			opposite = [i for i = 1 : n if P[1, i] < threshold]
 			"""
 			for i =1 : n
-				if P[1,i]> threshold
+				if P[1,i]< threshold
 					push!(opposite,i)
 				end
 			end
@@ -500,13 +500,14 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 	"""
 	faces=[]
 	for i in opposite
+		check= 0
 		for j = 1 : noV
 			if P[: , i] == face[:,j]
-				faces+=1
+				check=check + 1
 			end
 		end
-		if faces == 0
-			return i
+		if check == 0
+			push!(faces,1)
 		end
 	end
 	"""
@@ -539,6 +540,7 @@ the normal `axis` and the contant term `off`. It returns:
 	#per paralellizzare il metodo abbiamo trasformato questo codice nel
 	#codice che segue
 
+<<<<<<< HEAD
 	pos = [P[axis, i] > off for i in face]
 	#for i in face
 	#	pos=[P[axis,i] > off]
@@ -546,6 +548,18 @@ the normal `axis` and the contant term `off`. It returns:
 	if sum([P[axis, i] == off for i in face]) == length(pos)
 		position = 0
 	"""
+=======
+	#pos = [P[axis, i] > off for i in face]
+	pos=[]
+	for i in face
+		if P[axis,i] > off
+			push!(pos,1)
+		else
+			push!(pos,0)
+		end
+	end
+	#if sum([P[axis, i] == off for i in face]) == length(pos)
+>>>>>>> 6c3cd26046eee2ab163b23d199c2fd43dcd06f4b
 	S=0
 	for i in face
 		if P[axis,i] == off
