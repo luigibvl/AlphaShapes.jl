@@ -107,20 +107,20 @@ julia> AlphaStructures.findCenter(V)
 
 		elseif dim == 3
 			#circumcenter of a triangle in R^3
-			numer =Threads.@spawn Lar.norm(P[:, 3] - P[:, 1])^2 * Lar.cross(
+			numer = Lar.norm(P[:, 3] - P[:, 1])^2 * Lar.cross(
 						Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]),
 						P[:, 2] - P[:, 1]
 					) +
-					Threads.@spawn Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
+					 Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
 				  		P[:, 3] - P[:, 1],
-						Threads.@spawn Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]
+						 Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]
 					)
 			)
-			numer=fetch(numer)
-			denom = 2 * (Threads.@spawn Lar.norm(
-				Threads.@spawn Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])
+			#numer=fetch(numer)
+			denom = 2 * ( Lar.norm(
+				 Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])
 			))^2
-			denom=fetch(denom)
+			#denom=fetch(denom)
 			center = P[:, 1] + numer / denom
 		end
 
@@ -128,15 +128,15 @@ julia> AlphaStructures.findCenter(V)
 		# https://people.sc.fsu.edu/~jburkardt/presentations
 		#	/cg_lab_tetrahedrons.pdf
 		# page 6 (matrix are transposed)
-		α =Threads.@spawn Lar.det([P; ones(1, 4)])
-		α=fetch(α)
+		α = Lar.det([P; ones(1, 4)])
+		#α=fetch(α)
 		sq = sum(abs2, P, dims = 1)
-		Dx = Threads.@spawn Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
-		Dx= fetch(Dx)
-		Dy =Threads.@spawn Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
-		Dy= fetch(Dy)
-		Dz =Threads.@spawn Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
-		Dz=fetch(Dz)
+		Dx =  Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
+		#Dx= fetch(Dx)
+		Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
+		#Dy= fetch(Dy)
+		Dz = Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
+		#Dz=fetch(Dz)
 		center = [Dx; Dy; Dz]/2α
 	end
 
@@ -174,10 +174,10 @@ Possible choices are:
 	@assert (m = size(P, 2)) != 0 "findClosestPoint: No Points in `P`."
 
 	radlist = SharedArray{Float64}(m)
-	@sync @distributed for col = 1 : m
-		r, c = Threads.@spawn findRadius([Psimplex P[:,col]], true)
-		   r= fetch(r)
-		   c=fetch(c)
+	for col = 1 : m
+		r, c =  findRadius([Psimplex P[:,col]], true)
+		   #r= fetch(r)
+		   #c=fetch(c)
 		sameSign = (
 			r == Inf ||
 			metric != "dd" ||
@@ -188,9 +188,9 @@ Possible choices are:
 		radlist[col] = ((-1)^(1 + sameSign)) * r
 	end
 
-	radius, closestidx =Threads.@spawn findmin(radlist)
-	radius=fetch(radius)
-	closestidx=fetch(closestidx)
+	radius, closestidx = findmin(radlist)
+	#radius=fetch(radius)
+	#closestidx=fetch(closestidx)
 
 	if radius == Inf
 		closestidx = nothing
@@ -264,15 +264,19 @@ julia> AlphaStructures.findRadius(V, true)
 	else
 		#per paralellizzare il metodo abbiamo trasformato questo codice nel
 		#codice che segue
-		#r = round(
-		#	findmin([Lar.norm(c - P[:, i]) for i = 1 : size(P, 2)])[1],
-		#	digits = digits
-		#)
+
+		r = round(
+			findmin([Lar.norm(c - P[:, i]) for i = 1 : size(P, 2)])[1],
+			digits = digits
+		)
+		"""
 		for i = 1 : size(P, 2)
 			 push!(norm,Lar.norm(c - P[:, i]))
 		end
+
 		minNorms = findmin(norm)
 		r = round(minNorms[1],digits = digits)
+		"""
 	end
 	if center
 		return r, c
@@ -324,20 +328,23 @@ julia> AlphaStructures.matrixPerturbation(V)
 	if row == [0]
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
-		#row = [i for i = 1 : size(M, 1)]
+		row = [i for i = 1 : size(M, 1)]
+		"""
 		row=[0]
 		for i=1 : size(M,1)
 			push!(row,i)
 		end
+		"""
 	end
 	if col == [0]
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
 		#col = [i for i = 1 : size(M, 2)]
+		col=[]
 		for i=1 :size(M,2)
-			col=[]
 			push!(col,i)
 		end
+
 	end
 
 	N = copy(M)
@@ -400,21 +407,25 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		if point[1] < threshold
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite = [i for i = 1 : n if P[1, i] > threshold]
+			opposite = [i for i = 1 : n if P[1, i] > threshold]
+			"""
 			for i=1 : n
 				if P[1,i] > threshold
 					push!(opposite,i)
 				end
 			end
+			"""
 		else
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite = [i for i = 1 : n if P[1, i] < threshold]
+			opposite = [i for i = 1 : n if P[1, i] < threshold]
+			"""
 			for i =1 : n
 				if P[1,i]> threshold
 					push!(opposite,i)
 				end
 			end
+			"""
 		end
 	elseif dim == 2
 		if (Δx = face[1, 1] - face[1, 2]) != 0.0
@@ -426,22 +437,26 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			side = sign(m * point[1] + q - point[2])
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite =
-				#[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
+			opposite =
+				[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
+				"""
 			for i=1 : n
 				if side * (m * P[1, i] + q - P[2, i]) < 0
 					push!(opposite,i)
 				end
 			end
+			"""
 		else
 			q = face[1, 1]
 			side = sign(point[1] - q)
-			#opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
+			opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
+			"""
 			for i = 1 : n
 				if side * (P[1, i] - q) < 0
 					push!(opposite,i)
 				end
 			end
+			"""
 		end
 
 
@@ -450,34 +465,39 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			face[:, 2] - face[:, 1],
 			face[:, 3] - face[:, 1]
 		)
-		axis=fetch(axis)
-		off =Threads.@spawn Lar.dot(axis, face[:, 1])
-		off=fetch(off)
-		position =Threads.@spawn Lar.dot(point, axis)
-		position=fetch(position)
+		axis = fetch(axis)
+		off = Threads.@spawn Lar.dot(axis, face[:, 1])
+		off = fetch(off)
+		position = Threads.@spawn Lar.dot(point, axis)
+		position = fetch(position)
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
 		if position < off
-			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
+			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
+			"""
 			for i=1 : size(P,2)
 				if Lar.dot(P[:,i], axis) > off
 					push!(opposite,i)
 				end
 			end
+			"""
 		else
-			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
+			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
+			"""
 			for i = 1:size(P, 2)
 				if Lar.dot(P[:,i], axis) < off
 					push!(opposite,i)
 				end
 			end
+			"""
 		end
 	end
 
-	#return [
-	#	i for i in opposite
-	#	if sum([P[:, i] == face[:, j] for j = 1 : noV]) == 0
-	#]
+	return [
+		i for i in opposite
+		if sum([P[:, i] == face[:, j] for j = 1 : noV]) == 0
+	]
+	"""
 	faces=[]
 	for i in opposite
 		for j = 1 : noV
@@ -489,6 +509,7 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			return i
 		end
 	end
+	"""
 
 
 end
@@ -518,20 +539,23 @@ the normal `axis` and the contant term `off`. It returns:
 	#per paralellizzare il metodo abbiamo trasformato questo codice nel
 	#codice che segue
 
-	#pos = [P[axis, i] > off for i in face]
-	for i in face
-		pos=[P[axis,i] > off]
-	end
-	#if sum([P[axis, i] == off for i in face]) == length(pos)
+	pos = [P[axis, i] > off for i in face]
+	#for i in face
+	#	pos=[P[axis,i] > off]
+	#end
+	if sum([P[axis, i] == off for i in face]) == length(pos)
+		position = 0
+	"""
 	S=0
 	for i in face
 		if P[axis,i] == off
 			S+=1
 		end
 	end
-		#position = 0 # face coplanar with axis
-	if S==length(pos)
-		position= 0
+	position = 0 # face coplanar with axis
+	"""
+	#if S==length(pos)
+	#	position= 0
 
 	elseif sum(pos) == 0
 		position = -1
@@ -568,7 +592,7 @@ julia> AlphaStructures.implexFaces(σ)
 ```
 """
 @timeit to "simplexFaces" function simplexFaces(σ::Array{Int64,1})::Array{Array{Int64,1},1}
-    Threads.@spawn sort!(sort!.(collect(Combinatorics.combinations(σ, length(σ)-1))))
+    sort!(sort!.(collect(Combinatorics.combinations(σ, length(σ)-1))))
 end
 
 #-------------------------------------------------------------------------------
