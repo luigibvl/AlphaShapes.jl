@@ -81,7 +81,7 @@ julia> AlphaStructures.findCenter(V)
 # funzione ausiliaria per findcenter
 # calcola il secondo membro del numeratore se dim = 3
 function secondMember(P::Lar.Points)::Array{Float64,1}
-	n2=  Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
+	 n2=  Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
 	   P[:, 3] - P[:, 1],
 	   Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]
 		))
@@ -206,7 +206,7 @@ Possible choices are:
 
 	radlist = SharedArray{Float64}(m)
 
-	for col = 1 : m
+	@sync for col = 1 : m
 		rc = @spawn findRadius([Psimplex P[:,col]], true)
 		r, c = fetch(rc)
 
@@ -291,7 +291,7 @@ julia> AlphaStructures.findRadius(V, true)
 		# 	digits = digits
 		# )
 
-		for i = 1 : size(P, 2)
+		@sync for i = 1 : size(P, 2)
 			 push!(norm,Lar.norm(c - P[:, i]))
 		end
 		minNorms = findmin(norm)
@@ -345,7 +345,7 @@ julia> AlphaStructures.matrixPerturbation(V)
 		#codice che segue
 		#row = [i for i = 1 : size(M, 1)]
 
-		for i=1 : size(M,1)
+		@sync for i=1 : size(M,1)
 			push!(row,i)
 		end
 
@@ -355,7 +355,7 @@ julia> AlphaStructures.matrixPerturbation(V)
 		#codice che segue
 		#col = [i for i = 1 : size(M, 2)]
 
-		for i=1 :size(M,2)
+		@sync for i=1 :size(M,2)
 			push!(col,i)
 		end
 
@@ -416,7 +416,7 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			#codice che segue
 			#opposite = [i for i = 1 : n if P[1, i] > threshold]
 
-			for i=1 : n
+			@sync for i=1 : n
 				if P[1,i] > threshold
 					push!(opposite,i)
 				end
@@ -427,7 +427,7 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			#codice che segue
 			#opposite = [i for i = 1 : n if P[1, i] < threshold]
 
-			for i =1 : n
+			@sync for i =1 : n
 				if P[1,i]< threshold
 					push!(opposite,i)
 				end
@@ -446,7 +446,7 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			#codice che segue
 			#opposite =
 			#	[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
-			for i=1 : n
+			@sync for i=1 : n
 				if side * (m * P[1, i] + q - P[2, i]) < 0
 					push!(opposite,i)
 				end
@@ -457,7 +457,7 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			side = sign(point[1] - q)
 			#opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
 
-			for i = 1 : n
+			@sync for i = 1 : n
 				if side * (P[1, i] - q) < 0
 					push!(opposite,i)
 				end
@@ -479,14 +479,14 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		#codice che segue
 		if position < off
 			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
-			for i=1 : size(P,2)
+			@sync for i=1 : size(P,2)
 				if Lar.dot(P[:,i], axis) > off
 					push!(opposite,i)
 				end
 			end
 		else
 			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
-			for i = 1:size(P, 2)
+			@sync for i = 1:size(P, 2)
 				if Lar.dot(P[:,i], axis) < off
 					push!(opposite,i)
 				end
@@ -540,7 +540,7 @@ the normal `axis` and the contant term `off`. It returns:
 	#codice che segue
 
 	pos=[]
-	for i in face
+	@sync for i in face
 		if P[axis,i] > off
 			push!(pos,1)
 		else
@@ -553,7 +553,7 @@ the normal `axis` and the contant term `off`. It returns:
 	# 	position = 0
 
 	S=0
-	for i in face
+	@sync for i in face
 		if P[axis,i] == off
 			S+=1
 		end
