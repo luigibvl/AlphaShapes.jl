@@ -43,6 +43,7 @@ for α in reduced_filter
     #@code_warntype AlphaStructures.alphaSimplex(V, filtration, α)
     @show α
     VVV, EEV, FFV, TTV = AlphaStructures.alphaSimplex(V, filtration, α)
+    """
     GL.VIEW(GL.GLExplode(
         V,
         [[[t] for t in TTV]; [[f] for f in FFV]; [[e] for e in EEV]],
@@ -52,6 +53,7 @@ for α in reduced_filter
         99,
         1,# Colors
     ))
+    """
 end
 
 print_timer(AlphaStructures.to);

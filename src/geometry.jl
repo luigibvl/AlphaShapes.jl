@@ -294,8 +294,8 @@ julia> AlphaStructures.findRadius(V, true)
 		#@sync for i = 1 : size(P, 2)
 		#	 push!(norm,Lar.norm(c - P[:, i]))
 		#end
-		minNorms = findmin(norm)
-		r = round(minNorms[1],digits = digits)
+		#minNorms = findmin(norm)
+		#r = round(minNorms[1],digits = digits)
 
 	end
 	if center
@@ -539,6 +539,7 @@ the normal `axis` and the contant term `off`. It returns:
 	#per paralellizzare il metodo abbiamo trasformato questo codice nel
 	#codice che segue
 
+	"""
 	pos=[]
 	@sync for i in face
 		if P[axis,i] > off
@@ -547,11 +548,13 @@ the normal `axis` and the contant term `off`. It returns:
 			push!(pos,0)
 		end
 	end
-	#pos = [P[axis, i] > off for i in face]
+	"""
+	pos = [P[axis, i] > off for i in face]
 
-	# if sum([P[axis, i] == off for i in face]) == length(pos)
-	# 	position = 0
+	if sum([P[axis, i] == off for i in face]) == length(pos)
+	 	position = 0
 
+	"""
 	S=0
 	@sync for i in face
 		if P[axis,i] == off
@@ -561,7 +564,7 @@ the normal `axis` and the contant term `off`. It returns:
 
 	if S==length(pos)
 		position= 0
-
+	"""
 	elseif sum(pos) == 0
 		position = -1
 	elseif sum(pos) == length(pos)
