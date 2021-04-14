@@ -286,14 +286,14 @@ julia> AlphaStructures.findRadius(V, true)
 	else
 		#per paralellizzare il metodo abbiamo trasformato questo codice nel
 		#codice che segue
-		# r = round(
-		# 	findmin([Lar.norm(c - P[:, i]) for i = 1 : size(P, 2)])[1],
-		# 	digits = digits
-		# )
+		 r = round(
+		 	findmin([Lar.norm(c - P[:, i]) for i = 1 : size(P, 2)])[1],
+		 	digits = digits
+		 )
 
-		@sync for i = 1 : size(P, 2)
-			 push!(norm,Lar.norm(c - P[:, i]))
-		end
+		#@sync for i = 1 : size(P, 2)
+		#	 push!(norm,Lar.norm(c - P[:, i]))
+		#end
 		minNorms = findmin(norm)
 		r = round(minNorms[1],digits = digits)
 
@@ -343,21 +343,21 @@ julia> AlphaStructures.matrixPerturbation(V)
 	if row == [0]
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
-		#row = [i for i = 1 : size(M, 1)]
+		row = [i for i = 1 : size(M, 1)]
 
-		@sync for i=1 : size(M,1)
-			push!(row,i)
-		end
+		#@sync for i=1 : size(M,1)
+		#	push!(row,i)
+		#end
 
 	end
 	if col == [0]
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
-		#col = [i for i = 1 : size(M, 2)]
+		col = [i for i = 1 : size(M, 2)]
 
-		@sync for i=1 :size(M,2)
-			push!(col,i)
-		end
+		#@sync for i=1 :size(M,2)
+		#	push!(col,i)
+		#end
 
 	end
 
@@ -414,24 +414,24 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		if point[1] < threshold
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite = [i for i = 1 : n if P[1, i] > threshold]
+			opposite = [i for i = 1 : n if P[1, i] > threshold]
 
-			@sync for i=1 : n
-				if P[1,i] > threshold
-					push!(opposite,i)
-				end
-			end
+			#@sync for i=1 : n
+			#	if P[1,i] > threshold
+			#		push!(opposite,i)
+			#	end
+			#end
 
 		else
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite = [i for i = 1 : n if P[1, i] < threshold]
+			opposite = [i for i = 1 : n if P[1, i] < threshold]
 
-			@sync for i =1 : n
-				if P[1,i]< threshold
-					push!(opposite,i)
-				end
-			end
+			#@sync for i =1 : n
+			#	if P[1,i]< threshold
+			#		push!(opposite,i)
+			#	end
+			#end
 
 		end
 	elseif dim == 2
@@ -444,24 +444,24 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			side = sign(m * point[1] + q - point[2])
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite =
-			#	[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
-			@sync for i=1 : n
-				if side * (m * P[1, i] + q - P[2, i]) < 0
-					push!(opposite,i)
-				end
-			end
+			opposite =
+				[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
+			#@sync for i=1 : n
+			#	if side * (m * P[1, i] + q - P[2, i]) < 0
+			#		push!(opposite,i)
+			#	end
+			#end
 
 		else
 			q = face[1, 1]
 			side = sign(point[1] - q)
-			#opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
+			opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
 
-			@sync for i = 1 : n
-				if side * (P[1, i] - q) < 0
-					push!(opposite,i)
-				end
-			end
+			 #@sync for i = 1 : n
+			#	if side * (P[1, i] - q) < 0
+			#		push!(opposite,i)
+			#	end
+			#end
 
 		end
 
@@ -478,19 +478,19 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
 		if position < off
-			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
-			@sync for i=1 : size(P,2)
-				if Lar.dot(P[:,i], axis) > off
-					push!(opposite,i)
-				end
-			end
+			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
+			#@sync for i=1 : size(P,2)
+			#	if Lar.dot(P[:,i], axis) > off
+			#		push!(opposite,i)
+			#	end
+			#end
 		else
-			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
-			@sync for i = 1:size(P, 2)
-				if Lar.dot(P[:,i], axis) < off
-					push!(opposite,i)
-				end
-			end
+			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
+			#@sync for i = 1:size(P, 2)
+			#	if Lar.dot(P[:,i], axis) < off
+			#		push!(opposite,i)
+			#	end
+			#end
 		end
 	end
 
@@ -511,8 +511,8 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			push!(faces,1)
 		end
 	end
+	return faces
 	"""
-
 end
 
 #-------------------------------------------------------------------------------
