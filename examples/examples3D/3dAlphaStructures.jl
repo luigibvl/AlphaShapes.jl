@@ -1,8 +1,9 @@
 #using AlphaStructures
-include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
-
 using LinearAlgebraicRepresentation, ViewerGL
 using BenchmarkTools
+using Distributed
+
+include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
 
 Lar = LinearAlgebraicRepresentation
 GL = ViewerGL

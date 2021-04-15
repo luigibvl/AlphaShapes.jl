@@ -8,7 +8,7 @@ module AlphaStructures
 	using SharedArrays
 	using Combinatorics, DataStructures
 	using Distributed, Triangle
-	Lar = LinearAlgebraicRepresentation
+	const Lar = LinearAlgebraicRepresentation
 
 	include("alpha_complex.jl")
 	include("deWall.jl")

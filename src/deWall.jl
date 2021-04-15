@@ -1,5 +1,6 @@
 export delaunayWall;
 using Base.Threads
+
 #===============================================================================
 #
 #	src/deWall.jl
@@ -114,6 +115,20 @@ julia> DT = AlphaStructures.delaunayWall(P)
 	return AFL
 end
 
+# @timeit to "e" function e(P::Lar.Points,
+# 		Pblack::Array{Float64},
+# 		tetraDict::DataStructures.Dict{Array{Int64,1},Array{Float64,1}},
+# 		AFL::Array{Array{Int64,1},1},
+# 		ax::Int64,
+# 		off::Float64,
+# 		positive::Bool;
+# 		DEBUG = false
+# 	)::Lar.Cells
+#
+# 	return recursiveDelaunayWall(
+# 	   P, Pblack, tetraDict, AFL, ax, off, positive; DEBUG = DEBUG)
+# end
+
 
 @timeit to "delaunayWall" function delaunayWall(
 		P::Lar.Points,
@@ -164,7 +179,7 @@ end
 	while !isempty(AFLα)
 		# if face ∈ keys(tetraDict) oppoint = tetraDict[face]
 		# else Pselection = setdiff([i for i = 1 : n], face) end
-		σ = @spawn AlphaStructures.findWallSimplex(
+		σ =  @spawn AlphaStructures.findWallSimplex(
 				Pext, AFLα[1], tetraDict[AFLα[1]], size(P, 2), DEBUG = DEBUG
 			)
 		σ = fetch(σ)
@@ -186,19 +201,34 @@ end
 
 	# 5 - Change the axis `ax` and repeat until there are no faces but exposed.
 	#      A.K.A. Divide & Conquer phase.
+
+	"""
 	if !isempty(AFLminus)
-		 union!(DT, recursiveDelaunayWall(
+		union!(DT, recursiveDelaunayWall(
 			P, Pblack, tetraDict, AFLminus, ax, off, false; DEBUG = DEBUG
 		))
 	end
+
 	if !isempty(AFLplus)
-		 union!(DT, recursiveDelaunayWall(
+		union!(DT, recursiveDelaunayWall(
 			P, Pblack, tetraDict, AFLplus, ax, off, true; DEBUG = DEBUG
 		))
+	end
+	"""
+
+	if !isempty(AFLminus)
+		res = @spawn recursiveDelaunayWall(P, Pblack, tetraDict, AFLminus, ax, off, false; DEBUG = DEBUG)
+		union!(DT, fetch(res))
+	end
+
+	if !isempty(AFLplus)
+		res = @spawn recursiveDelaunayWall(P, Pblack, tetraDict, AFLplus, ax, off, true; DEBUG = DEBUG)
+		union!(DT, fetch(res))
 	end
 
 	return DT
 end
+
 
 #-------------------------------------------------------------------------------
 """
@@ -419,13 +449,15 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 
 	#DEBUG = true
 
-	#dim, n = size(P)
+	dim, n = size(P)
 
-	dn = @spawn size(P)
-	dim,n=fetch(dn)
+	#dn = @spawn size(P)
+	#dim,n=fetch(dn)
 
-	newaxis = @spawn mod(ax, dim) + 1
-	newaxis = fetch(newaxis)
+	newaxis = mod(ax, dim) + 1
+
+	#newaxis = @spawn mod(ax, dim) + 1
+	#newaxis = fetch(newaxis)
 
 	if DEBUG println("Divide Plus/Minus $positive") end
 
@@ -443,17 +475,22 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 
 	if DEBUG println("Step In") end
 
-
+	newAFL=@spawn findAFL(Psubset,AFL)
+	newAFL=fetch(newAFL)
+	newTetraDict=@spawn findTetradict(Psubset,tetraDict)
+	newTetraDict=fetch(newTetraDict)
 	DT = @spawn AlphaStructures.delaunayWall(
 			P[:, Psubset],
 			newaxis,
 			Pblack,
-			[[findall(Psubset.==p)[1] for p in σ] for σ in AFL],
-			Dict([
-				[findall(Psubset.==p)[1] for p in k] => v
-				for (k,v) in tetraDict
-					if k ⊆ Psubset
-			]),
+			#[[findall(Psubset.==p)[1] for p in σ] for σ in AFL],
+			newAFL,
+			# Dict([
+			# 	[findall(Psubset.==p)[1] for p in k] => v
+			# 	 for (k,v) in tetraDict
+			# 		if k ⊆ Psubset
+			# ]),
+			newTetraDict,
 			DEBUG = DEBUG
 		)
 
@@ -463,6 +500,17 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 	return [[Psubset[i] for i in σ] for σ in DT]
 end
 
+@timeit to "findTetradict" function findTetradict(Psubset::Array{Int64,1},tetraDict::DataStructures.Dict{Array{Int64,1},Array{Float64,1}})::Dict{Array{Int64,1},Array{Float64,1}}
+	return Dict([
+		[findall(Psubset.==p)[1] for p in k] => v
+		 for (k,v) in tetraDict
+			if k ⊆ Psubset
+	])
+end
+
+@timeit to "findAFL" function findAFL(Psubset::Array{Int64,1},AFL::Array{Array{Int64,1},1})::Array{Array{Int64,1},1}
+	return [[findall(Psubset.==p)[1] for p in σ] for σ in AFL]
+end
 
 #-------------------------------------------------------------------------------
 
