@@ -1,4 +1,5 @@
 export alphaFilter, alphaSimplex, delaunayTriangulation, tt, ttt;
+using Base.Threads
 #===============================================================================
 #
 #	src/alpha_complex.jl
@@ -75,16 +76,18 @@ SortedMultiDict(Base.Order.ForwardOrdering(),
 
 
 	dim = size(V, 1)
-	filtration = DataStructures.SortedDict{Array{Int64,1},Float64}()
+	filtration =Threads.@spawn DataStructures.SortedDict{Array{Int64,1},Float64}()
+	filtration=fetch(filtration)
 
 	# 1 - Each point => alpha_char = 0.
-	for i = 1 : size(V, 2)
+	@sync for i = 1 : size(V, 2)
 		insert!(filtration, [i], 0.)
 	end
 
 	# 2 - Delaunay triangulation of ``V``
 	if isempty(DT)
-		DT = AlphaStructures.delaunayTriangulation(V)
+		DT =Threads.@spawn AlphaStructures.delaunayTriangulation(V)
+		DT=fetch(DT)
 	end
 
 	n_upsimplex = length(DT)
@@ -120,14 +123,16 @@ Process the upper simplex.
 		digits=64)
 
 
-	α_char = AlphaStructures.findRadius(V[:, up_simplex], digits=digits);
+	α_char =Threads.@spawn AlphaStructures.findRadius(V[:, up_simplex], digits=digits);
+	α_char = fetch(α_char)
 	insert!(filtration, up_simplex, α_char)
 
 	d = length(up_simplex)-1
 	if d > 1
 		# It gives back combinations in natural order
-		newsimplex = collect(Combinatorics.combinations(up_simplex,d))
-		for lowsimplex in newsimplex
+		newsimplex =Threads.@spawn collect(Combinatorics.combinations(up_simplex,d))
+		newsimplex= fetch(newsimplex)
+		@simd for lowsimplex in newsimplex
 			AlphaStructures.processlowsimplex(V, up_simplex, lowsimplex, filtration; digits=digits)
 		end
 	end
@@ -151,7 +156,8 @@ Process the lower simplex knowing the upper.
 	filtration::DataStructures.SortedDict{};
 	digits=64)
 
-	α_char = AlphaStructures.findRadius(V[:, lowsimplex], digits=digits)
+	α_char =Threads.@spawn AlphaStructures.findRadius(V[:, lowsimplex], digits=digits)
+	α_char= fetch(α_char)
 	point = V[:, setdiff(up_simplex, lowsimplex)]
 
 	if AlphaStructures.vertexInCircumball(V[:, lowsimplex], α_char, point)
@@ -165,8 +171,9 @@ Process the lower simplex knowing the upper.
 	d = length(lowsimplex)-1
 	if d > 1
 		# It gives back combinations in natural order
-		newsimplex = collect(Combinatorics.combinations(lowsimplex,d))
-		for simplex in newsimplex
+		newsimplex =Threads.@spawn collect(Combinatorics.combinations(lowsimplex,d))
+		newsimplex= fetch(newsimplex)
+		@simd for simplex in newsimplex
 			 AlphaStructures.processlowsimplex(V, lowsimplex, simplex, filtration, digits=digits)
 		end
 	end
@@ -194,7 +201,7 @@ Return collection of all `d`-simplex, for `d ∈ [0,dimension]`,
 	# [VV, EV, FV, ...]
 	simplexCollection = [ Array{Array{Int64,1},1}() for i = 1 : dim+1 ]
 
-	for (k, v) in filtration
+	@sync for (k, v) in filtration
         if v <= α_threshold
         	push!(simplexCollection[length(k)], k)
     	end
