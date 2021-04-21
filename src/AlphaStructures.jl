@@ -16,5 +16,5 @@ module AlphaStructures
 	include("delaunayTriangulation.jl")
 	const to = TimerOutput()
 
-	export alphaFilter, alphaSimplex, delaunayTriangulation, tt, ttt, to
+	export alphaFilter, alphaSimplex, delaunayTriangulation, to
 end

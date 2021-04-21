@@ -542,7 +542,8 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 	)::Bool
 
 	@simd for face in newσ
-		inters = AlphaStructures.planarIntersection(P, face, ax, off)
+		inters = @spawn AlphaStructures.planarIntersection(P, face, ax, off)
+		inters = fetch(inters)
     	if inters == 0 # intersected by plane α
 			AlphaStructures.updatelist!(AFLα, face)
 		elseif inters == -1 # in NegHalfspace(α)

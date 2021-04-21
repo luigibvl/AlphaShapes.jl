@@ -115,6 +115,8 @@ Delaunay triangulation algorithm in MATLAB.
 		upper_simplex = Triangle.basic_triangulation(vertices, points_map)
 
 	elseif dim == 3
+		# upper_simplex = @spawn AlphaStructures.delaunayWall(V)
+		# upper_simplex = fetch(upper_simplex)
 		upper_simplex = AlphaStructures.delaunayWall(V)
 	end
 

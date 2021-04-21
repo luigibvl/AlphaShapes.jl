@@ -24,15 +24,6 @@ using Base.Threads
 #
 ===============================================================================#
 
-function tt(x)
-	println(x)
-end
-
-function ttt(x)
-	println(x)
-end
-
-
 """
 	alphaFilter(
 		V::Lar.Points, DT = Array{Int64,1}[];
@@ -130,8 +121,8 @@ Process the upper simplex.
 	d = length(up_simplex)-1
 	if d > 1
 		# It gives back combinations in natural order
-		newsimplex =Threads.@spawn collect(Combinatorics.combinations(up_simplex,d))
-		newsimplex= fetch(newsimplex)
+		newsimplex = Threads.@spawn collect(Combinatorics.combinations(up_simplex,d))
+		newsimplex = fetch(newsimplex)
 		@simd for lowsimplex in newsimplex
 			AlphaStructures.processlowsimplex(V, up_simplex, lowsimplex, filtration; digits=digits)
 		end
@@ -172,7 +163,7 @@ Process the lower simplex knowing the upper.
 	if d > 1
 		# It gives back combinations in natural order
 		newsimplex =Threads.@spawn collect(Combinatorics.combinations(lowsimplex,d))
-		newsimplex= fetch(newsimplex)
+		newsimplex = fetch(newsimplex)
 		@simd for simplex in newsimplex
 			 AlphaStructures.processlowsimplex(V, lowsimplex, simplex, filtration, digits=digits)
 		end
@@ -203,7 +194,7 @@ Return collection of all `d`-simplex, for `d ∈ [0,dimension]`,
 
 	@sync for (k, v) in filtration
         if v <= α_threshold
-        	push!(simplexCollection[length(k)], k)
+        	@spawn push!(simplexCollection[length(k)], k)
     	end
     end
 
