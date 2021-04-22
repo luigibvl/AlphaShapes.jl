@@ -194,7 +194,8 @@ Return collection of all `d`-simplex, for `d ∈ [0,dimension]`,
 
 	@sync for (k, v) in filtration
         if v <= α_threshold
-        	@spawn push!(simplexCollection[length(k)], k)
+        	#@spawn 
+			push!(simplexCollection[length(k)], k)
     	end
     end
 
