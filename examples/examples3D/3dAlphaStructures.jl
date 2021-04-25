@@ -1,16 +1,14 @@
-#using AlphaStructures
 using LinearAlgebraicRepresentation, ViewerGL
 using BenchmarkTools
 using Distributed
 
-include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
+include("../../src/AlphaStructures.jl")
 
 Lar = LinearAlgebraicRepresentation
 GL = ViewerGL
 using TimerOutputs
 
-#filename = "./OBJ/lowpolytree.obj";
-filename = "/Users/luigibevilacqua/Desktop/AlphaShapes/examples/examples3D/OBJ/teapot.obj";
+filename = "./examples/examples3D/OBJ/teapot.obj";
 W, EVs, FVs = Lar.obj2lar(filename);
 WW = [[i] for i = 1:size(W, 2)];
 V, VV = Lar.apply(Lar.r(pi / 2, 0, 0), (W, WW)); #object rotated
@@ -21,9 +19,11 @@ GL.VIEW([
     GL.GLAxis(GL.Point3d(-1, -1, -1), GL.Point3d(1, 1, 1))
 ]);
 
-
+V, VV = Lar.apply(Lar.r(pi / 2, 0, 0), (W, WW)); #object rotated
+@btime AlphaStructures.alphaFilter(V);
 filtration = AlphaStructures.alphaFilter(V);
 VV, EV, FV, TV = AlphaStructures.alphaSimplex(V, filtration, 3.7)
+@btime VV, EV, FV, TV = AlphaStructures.alphaSimplex(V, filtration, 3.7)
 
 GL.VIEW([
     GL.GLGrid(V, EV, GL.COLORS[1], 0.6) # White
@@ -38,11 +38,12 @@ granular = 10
 reduced_filter =
     filter_key[sort(abs.(rand(Int, granular) .% length(filter_key)))]
 reduced_filter = [reduced_filter; max(filter_key...)]
-
+α=0.0
 
 for α in reduced_filter
     #@code_warntype AlphaStructures.alphaSimplex(V, filtration, α)
     @show α
+    @btime VVV, EEV, FFV, TTV = AlphaStructures.alphaSimplex(V, filtration, α)
     VVV, EEV, FFV, TTV = AlphaStructures.alphaSimplex(V, filtration, α)
     """
     GL.VIEW(GL.GLExplode(
@@ -57,4 +58,4 @@ for α in reduced_filter
     """
 end
 
-print_timer(AlphaStructures.to);
+#print_timer(AlphaStructures.to);

@@ -1,11 +1,10 @@
-#using AlphaStructures
 
-include("/Users/luigibevilacqua/Desktop/AlphaShapes/src/AlphaStructures.jl")
-
+include("../../src/AlphaStructures.jl")
 using LinearAlgebraicRepresentation, ViewerGL
 using TimerOutputs
 Lar = LinearAlgebraicRepresentation
 GL =  ViewerGL
+using BenchmarkTools
 
 
 """
@@ -39,30 +38,27 @@ function pointsRand(
 	return Vi[:,2:end], Ve[:,2:end], VVi, VVe
 end
 
-filename = "/Users/luigibevilacqua/Desktop/AlphaShapes/examples/examples2D/svg_files/Lar2.svg";
-
-#filename = "examples/examples2D/svg_files/Lar2.svg";
+filename = "./examples/examples2D/svg_files/Lar2.svg";
 V,EV = Lar.svg2lar(filename);
 
 Vi, Ve, VVi, VVe = pointsRand(V, EV, 1000, 10000);
 
-# GL.VIEW([
-# 	GL.GLGrid(Vi, VVi, GL.COLORS[1], 1)
-# 	GL.GLGrid(Ve, VVe, GL.COLORS[12], 1)
-# ])
+GL.VIEW([
+	GL.GLGrid(Vi, VVi, GL.COLORS[1], 1)
+	GL.GLGrid(Ve, VVe, GL.COLORS[12], 1)
+])
 
-
-AlphaStructures.tt("ciao!tt")
-AlphaStructures.ttt("ciao!ttt")
+#@btime filtration = AlphaStructures.alphaFilter(Vi);
 filtration = AlphaStructures.alphaFilter(Vi);
+
 VV,EV,FV = AlphaStructures.alphaSimplex(Vi, filtration, 0.02)
 
 points = [[p] for p in VV]
 faces = [[f] for f in FV]
 edges = [[e] for e in EV]
-#GL.VIEW(
-GL.GLExplode(Vi, [edges; faces], 1.5, 1.5, 1.5, 99, 1)
-# );
+GL.VIEW(
+	GL.GLExplode(Vi, [edges; faces], 1.5, 1.5, 1.5, 99, 1)
+ );
 
 filter_key = sort(unique(values(filtration)))
 
@@ -74,7 +70,7 @@ reduced_filter = [reduced_filter; max(filter_key...)]
 #
 # Arlecchino's Lar
 #
-#=
+
 for α in reduced_filter
 	@show α
 	VV,EV,FV = AlphaStructures.alphaSimplex(Vi, filtration, α)
@@ -87,7 +83,7 @@ for α in reduced_filter
 		)
 	)
 end
-=#
+
 #
 # Appearing Colors
 #

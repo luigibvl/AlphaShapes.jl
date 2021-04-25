@@ -1,4 +1,4 @@
-using AlphaStructures
+include("../src/AlphaStructures.jl")
 using LinearAlgebraicRepresentation
 Lar = LinearAlgebraicRepresentation
 
@@ -10,5 +10,5 @@ end
 
 #include("deWall.jl")
 include("delaunay.jl")
-include("alpha_complex.jl")
-include("geometry.jl")
+#include("alpha_complex.jl")
+#include("geometry.jl")

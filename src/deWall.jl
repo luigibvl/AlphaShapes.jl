@@ -109,26 +109,13 @@ julia> DT = AlphaStructures.delaunayWall(P)
 
 	σ = sort(AlphaStructures.firstDeWallSimplex(P, ax, off, DEBUG = DEBUG))
 	push!(DT, σ)
-	AFL = @spawn AlphaStructures.simplexFaces(σ)
-	AFL = fetch(AFL)
+	# AFL = @spawn AlphaStructures.simplexFaces(σ)
+	# AFL = fetch(AFL)
+	AFL =  AlphaStructures.simplexFaces(σ)
+
 	AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
 	return AFL
 end
-
-# @timeit to "e" function e(P::Lar.Points,
-# 		Pblack::Array{Float64},
-# 		tetraDict::DataStructures.Dict{Array{Int64,1},Array{Float64,1}},
-# 		AFL::Array{Array{Int64,1},1},
-# 		ax::Int64,
-# 		off::Float64,
-# 		positive::Bool;
-# 		DEBUG = false
-# 	)::Lar.Cells
-#
-# 	return recursiveDelaunayWall(
-# 	   P, Pblack, tetraDict, AFL, ax, off, positive; DEBUG = DEBUG)
-# end
-
 
 @timeit to "delaunayWall" function delaunayWall(
 		P::Lar.Points,
@@ -146,8 +133,9 @@ end
 	AFLα = Array{Int64,1}[]		# (d-1)faces intersecting the Wall
 	AFLplus = Array{Int64,1}[]  # (d-1)faces in positive Wall half-space
 	AFLminus = Array{Int64,1}[] # (d-1)faces in positive Wall half-space
-	off = @spawn AlphaStructures.findMedian(P, ax)
-	off = fetch(off)
+	# off = @spawn AlphaStructures.findMedian(P, ax)
+	# off = fetch(off)
+	off =  AlphaStructures.findMedian(P, ax)
 
 	if !isempty(Pblack) Pext = [P Pblack] else Pext = copy(P) end
 
@@ -163,7 +151,8 @@ end
 		AFL = fetch(AFL)
 		AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
 		"""
-		AFL = computeFirstSimplex(P,ax,off,tetraDict,DT,DEBUG)
+		AFL = @spawn computeFirstSimplex(P,ax,off,tetraDict,DT,DEBUG)
+		AFL = fetch(AFL)
 	else
 		@assert !isempty(Pblack) "delaunayWall: Data missing - Pblack"
 		@assert !isempty(AFL) "delaunayWall: Data missing - AFL"
@@ -179,14 +168,17 @@ end
 	while !isempty(AFLα)
 		# if face ∈ keys(tetraDict) oppoint = tetraDict[face]
 		# else Pselection = setdiff([i for i = 1 : n], face) end
-		σ =  @spawn AlphaStructures.findWallSimplex(
+		# σ =  @spawn AlphaStructures.findWallSimplex(
+		# 		Pext, AFLα[1], tetraDict[AFLα[1]], size(P, 2), DEBUG = DEBUG
+		# 	)
+		# σ = fetch(σ)
+		σ =  AlphaStructures.findWallSimplex(
 				Pext, AFLα[1], tetraDict[AFLα[1]], size(P, 2), DEBUG = DEBUG
 			)
-		σ = fetch(σ)
 		if σ != nothing && σ ∉ DT
 			push!(DT, σ)
-			AFL = @spawn AlphaStructures.simplexFaces(σ)
-			AFL = fetch(AFL)
+			AFL = AlphaStructures.simplexFaces(σ)
+			#AFL = fetch(AFL)
 
 			AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
 			# Split σ's Faces according in semi-spaces
@@ -219,11 +211,15 @@ end
 	if !isempty(AFLminus)
 		res = @spawn recursiveDelaunayWall(P, Pblack, tetraDict, AFLminus, ax, off, false; DEBUG = DEBUG)
 		union!(DT, fetch(res))
+		# res =  recursiveDelaunayWall(P, Pblack, tetraDict, AFLminus, ax, off, false; DEBUG = DEBUG)
+		# union!(DT, res)
 	end
 
 	if !isempty(AFLplus)
 		res = @spawn recursiveDelaunayWall(P, Pblack, tetraDict, AFLplus, ax, off, true; DEBUG = DEBUG)
 		union!(DT, fetch(res))
+		# res =  recursiveDelaunayWall(P, Pblack, tetraDict, AFLplus, ax, off, true; DEBUG = DEBUG)
+		# union!(DT, res)
 	end
 
 	return DT
@@ -274,9 +270,11 @@ julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 	if DEBUG @show "find Wall Simplex of" face oppoint end
 	# Find the points in the halfspace defined by `face` that do not
 	#  containsother the other point of the simplex.
-	Pselection =
-		@spawn AlphaStructures.oppositeHalfSpacePoints(P, P[:, face], oppoint)
-	Pselection = fetch(Pselection)
+	# Pselection =
+	# 	@spawn AlphaStructures.oppositeHalfSpacePoints(P, P[:, face], oppoint)
+	# Pselection = fetch(Pselection)
+
+	Pselection =AlphaStructures.oppositeHalfSpacePoints(P, P[:, face], oppoint)
 
 	if DEBUG @show Pselection end
 
@@ -287,10 +285,14 @@ julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 
 	# Find the Closest Point in the other halfspace with respect to σ
 	#  according to dd-distance.
-	idxbase = @spawn Pselection[ AlphaStructures.findClosestPoint(
+	# idxbase = @spawn Pselection[ AlphaStructures.findClosestPoint(
+	# 	P[:, face], P[:, Pselection], metric = "dd"
+	# ) ]
+	#idxbase=fetch(idxbase)
+
+	idxbase = Pselection[ AlphaStructures.findClosestPoint(
 		P[:, face], P[:, Pselection], metric = "dd"
 	) ]
-	idxbase=fetch(idxbase)
 
 	# @assert !isnothing(idxbase)
 	# if isnothing(idxbase)
@@ -304,14 +306,17 @@ julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 		return nothing
 	end
 
-	σ = @spawn sort([face; idxbase])
-	σ = fetch(σ)
+	# σ = @spawn sort([face; idxbase])
+	# σ = fetch(σ)
+	σ =  sort([face; idxbase])
 	if DEBUG @show "Found face" σ end
 
 	# Check the simplex correctness
-	#radius, center = AlphaStructures.findRadius(P[:, σ], true)
-	rc = @spawn AlphaStructures.findRadius(P[:, σ], true)
-	radius, center = fetch(rc)
+	radius, center = AlphaStructures.findRadius(P[:, σ], true)
+	# rc = @spawn AlphaStructures.findRadius(P[:, σ], true)
+	# radius, center = fetch(rc)
+
+
 
 
 	for i = 1 : size(P, 2)
@@ -371,15 +376,19 @@ julia> firstDeWallSimplex(V, 1, AlphaStructures.findMedian(V,1))
     # the first point of the simplex is the one with coordinate `ax` maximal
     #  such that it is less than `off` (closer to α from minus)
 
-	Pselection = @spawn findall(x -> x < off, P[ax, :])
-	Pselection = fetch(Pselection)
+	# Pselection = @spawn findall(x -> x < off, P[ax, :])
+	# Pselection = fetch(Pselection)
+
+	Pselection =  findall(x -> x < off, P[ax, :])
 	# it gives an error if no point are less than `off`
 	#  in fact it means that all the points are located on the median,
 	#  with respect to `ax`.
 	@assert !isempty(Pselection) "firstDeWallSimplex: not able to build the first Delaunay
 		dimplex; all the points have the same `ax` coordinate."
-    newidx = @spawn Pselection[findmax(P[ax, Pselection])[2]]
-	newidx = fetch(newidx)
+    # newidx = @spawn Pselection[findmax(P[ax, Pselection])[2]]
+	# newidx = fetch(newidx)
+
+	newidx =  Pselection[findmax(P[ax, Pselection])[2]]
     # indices will store the indices of the simplex ...
     indices = [newidx]                      #Array{Int64,1}
     # ... and `Psimplex` will store the corresponding points
@@ -387,12 +396,16 @@ julia> firstDeWallSimplex(V, 1, AlphaStructures.findMedian(V,1))
 
     # the second point must be seeken across those with coordinate `ax`
     #  grater than `off`
-    Pselection = @spawn findall(x -> x > off, P[ax, :])
-	Pselection = fetch(Pselection)
+    # Pselection = @spawn findall(x -> x > off, P[ax, :])
+	# Pselection = fetch(Pselection)
+
+	Pselection = findall(x -> x > off, P[ax, :])
 
     for d = 1 : dim
 		idxbase = @spawn AlphaStructures.findClosestPoint(Psimplex, P[:, Pselection])
 		idxbase = fetch(idxbase)
+
+		#idxbase = AlphaStructures.findClosestPoint(Psimplex, P[:, Pselection])
 
 		@assert !isnothing(idxbase) "firstDeWallSimplex:
 			not able to determine first Delaunay Simplex"
@@ -403,8 +416,10 @@ julia> firstDeWallSimplex(V, 1, AlphaStructures.findMedian(V,1))
     end
 
     # Correctness check
-	rc = @spawn AlphaStructures.findRadius(Psimplex, true)
-	radius, center = fetch(rc)
+	# rc = @spawn AlphaStructures.findRadius(Psimplex, true)
+	# radius, center = fetch(rc)
+
+	radius, center = AlphaStructures.findRadius(Psimplex, true)
 
     for i = 1 : n
 		@assert Lar.norm(center - P[:, i]) >= radius "firstDeWallSimplex:
@@ -461,11 +476,16 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 
 	if DEBUG println("Divide Plus/Minus $positive") end
 
+
 	Psubset = @spawn findall(x -> (x > off) == positive, P[ax, :])
 	Psubset = fetch(Psubset)
 
+	#Psubset =  findall(x -> (x > off) == positive, P[ax, :])
+
 	blacklist = @spawn setdiff(unique([(keys(tetraDict)...)...]), Psubset)
 	blacklist = fetch(blacklist)
+
+	#blacklist =  setdiff(unique([(keys(tetraDict)...)...]), Psubset)
 
 	if !isempty(Pblack)
 		Pblack = [Pblack P[:, blacklist]]
@@ -475,11 +495,11 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 
 	if DEBUG println("Step In") end
 
-	newAFL=@spawn findAFL(Psubset,AFL)
+	newAFL= @spawn findAFL(Psubset,AFL)
 	newAFL=fetch(newAFL)
-	newTetraDict=@spawn findTetradict(Psubset,tetraDict)
+	newTetraDict= @spawn findTetradict(Psubset,tetraDict)
 	newTetraDict=fetch(newTetraDict)
-	DT = @spawn AlphaStructures.delaunayWall(
+	DT = AlphaStructures.delaunayWall(
 			P[:, Psubset],
 			newaxis,
 			Pblack,
@@ -494,7 +514,7 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 			DEBUG = DEBUG
 		)
 
-	DT = fetch(DT)
+	#DT = fetch(DT)
 	if DEBUG @show "Step Out with " DT end
 
 	return [[Psubset[i] for i in σ] for σ in DT]
@@ -541,9 +561,12 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 		DEBUG = false
 	)::Bool
 
-	@simd for face in newσ
-		inters = @spawn AlphaStructures.planarIntersection(P, face, ax, off)
-		inters = fetch(inters)
+	#@simd
+	for face in newσ
+		# inters = @spawn AlphaStructures.planarIntersection(P, face, ax, off)
+		# inters = fetch(inters)
+
+		inters = AlphaStructures.planarIntersection(P, face, ax, off)
     	if inters == 0 # intersected by plane α
 			AlphaStructures.updatelist!(AFLα, face)
 		elseif inters == -1 # in NegHalfspace(α)
@@ -626,7 +649,8 @@ in the dictionary.
 		σ::Array{Int64,1}
 	)::Nothing
 
-	@threads for cell in AFL
+	#@threads
+	@simd for cell in AFL
 		point = setdiff(σ, cell)
 		@assert length(point) == 1 "updateTetraDict!: Error during update of TetraDict $σ, $cell"
 		tetraDict[ cell ] = P[:, point[1]]
