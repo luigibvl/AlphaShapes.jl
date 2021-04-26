@@ -1,5 +1,4 @@
 export alphaFilter, alphaSimplex, delaunayTriangulation;
-using Base.Threads
 #===============================================================================
 #
 #	src/alpha_complex.jl
@@ -66,13 +65,10 @@ SortedMultiDict(Base.Order.ForwardOrdering(),
 	)::DataStructures.SortedDict{}
 
 	dim = size(V, 1)
-	# filtration =Threads.@spawn DataStructures.SortedDict{Array{Int64,1},Float64}()
-	# filtration=fetch(filtration)
-
 	filtration = DataStructures.SortedDict{Array{Int64,1},Float64}()
 
 	# 1 - Each point => alpha_char = 0.
-	for i = 1 : size(V, 2)
+	@inbounds @simd for i = 1 : size(V, 2)
 		insert!(filtration, [i], 0.)
 	end
 
@@ -80,16 +76,13 @@ SortedMultiDict(Base.Order.ForwardOrdering(),
 	if isempty(DT)
 		DT =Threads.@spawn AlphaStructures.delaunayTriangulation(V)
 		DT=fetch(DT)
-
-		#DT = AlphaStructures.delaunayTriangulation(V)
 	end
 
 	n_upsimplex = length(DT)
 
 	# 3 - process all upper simplex
 	ind = 1
-	#@simd
-	for upper_simplex in DT
+	@simd for upper_simplex in DT
 		if ind % 500000 == 0
 			println(ind," simplices processed of ", n_upsimplex)
 		end
@@ -117,21 +110,14 @@ Process the upper simplex.
 		filtration::DataStructures.SortedDict{};
 		digits=64)
 
-
-	# α_char =Threads.@spawn AlphaStructures.findRadius(V[:, up_simplex], digits=digits);
-	# α_char = fetch(α_char)
-
 	α_char = AlphaStructures.findRadius(V[:, up_simplex], digits=digits);
 	insert!(filtration, up_simplex, α_char)
 
 	d = length(up_simplex)-1
 	if d > 1
 		# It gives back combinations in natural order
-		#newsimplex = Threads.@spawn collect(Combinatorics.combinations(up_simplex,d))
-		#newsimplex = fetch(newsimplex)
 		newsimplex = collect(Combinatorics.combinations(up_simplex,d))
-		#@simd
-		for lowsimplex in newsimplex
+		@simd for lowsimplex in newsimplex
 			AlphaStructures.processlowsimplex(V, up_simplex, lowsimplex, filtration; digits=digits)
 		end
 	end
@@ -155,8 +141,6 @@ Process the lower simplex knowing the upper.
 	filtration::DataStructures.SortedDict{};
 	digits=64)
 
-	# α_char =Threads.@spawn AlphaStructures.findRadius(V[:, lowsimplex], digits=digits)
-	# α_char= fetch(α_char)
 	α_char = AlphaStructures.findRadius(V[:, lowsimplex], digits=digits)
 	point = V[:, setdiff(up_simplex, lowsimplex)]
 
@@ -171,11 +155,8 @@ Process the lower simplex knowing the upper.
 	d = length(lowsimplex)-1
 	if d > 1
 		# It gives back combinations in natural order
-		# newsimplex = Threads.@spawn collect(Combinatorics.combinations(lowsimplex,d))
-		# newsimplex = fetch(newsimplex)
 		newsimplex =  collect(Combinatorics.combinations(lowsimplex,d))
-		#simd
-		for simplex in newsimplex
+		@simd for simplex in newsimplex
 			 AlphaStructures.processlowsimplex(V, lowsimplex, simplex, filtration, digits=digits)
 		end
 	end
@@ -201,11 +182,9 @@ Return collection of all `d`-simplex, for `d ∈ [0,dimension]`,
 
 	dim = size(V, 1)
 	# [VV, EV, FV, ...]
-	#simplexCollection = [ Array{Array{Int64,1},1}() for i = 1 : dim+1 ]
-	simplexCollection = f(dim)
+	simplexCollection = [Array{Array{Int64,1},1}() for i = 1 : dim+1 ]
 	for (k, v) in filtration
         if v <= α_threshold
-        	#@spawn
 			push!(simplexCollection[length(k)], k)
     	end
     end
@@ -213,9 +192,4 @@ Return collection of all `d`-simplex, for `d ∈ [0,dimension]`,
 	sort!.(simplexCollection)
 
 	return simplexCollection
-end
-
-
-function f(dim::Int64)::Array{Lar.Cells,1}
-	return [ Array{Array{Int64,1},1}() for i = 1 : dim+1 ]
 end

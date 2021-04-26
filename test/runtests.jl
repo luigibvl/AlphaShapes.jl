@@ -8,7 +8,7 @@ else
 	using Test
 end
 
-#include("deWall.jl")
+include("deWall.jl")
 include("delaunay.jl")
-#include("alpha_complex.jl")
-#include("geometry.jl")
+include("alpha_complex.jl")
+include("geometry.jl")

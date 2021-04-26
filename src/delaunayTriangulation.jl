@@ -111,16 +111,16 @@ Delaunay triangulation algorithm in MATLAB.
 	elseif dim == 2
 		vertices = convert(Array{Float64,2},V')
 		points_map = Array{Int64,1}(collect(1:1:size(vertices)[1]))
-		@assert size(vertices, 1) > 3
-		upper_simplex = Triangle.basic_triangulation(vertices, points_map)
+		@assert size(vertices, 1) > 2
+		upper_simplex = @spawn Triangle.basic_triangulation(vertices, points_map)
+		upper_simplex = fetch(upper_simplex)
 
 	elseif dim == 3
-		# upper_simplex = @spawn AlphaStructures.delaunayWall(V)
-		# upper_simplex = fetch(upper_simplex)
-		upper_simplex = AlphaStructures.delaunayWall(V)
+		upper_simplex = @spawn AlphaStructures.delaunayWall(V)
+		upper_simplex = fetch(upper_simplex)
+
 	end
 
 	sort!.(upper_simplex)
-
 	return sort(upper_simplex)
 end

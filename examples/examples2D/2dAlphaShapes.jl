@@ -48,7 +48,6 @@ GL.VIEW([
 	GL.GLGrid(Ve, VVe, GL.COLORS[12], 1)
 ])
 
-#@btime filtration = AlphaStructures.alphaFilter(Vi);
 filtration = AlphaStructures.alphaFilter(Vi);
 
 VV,EV,FV = AlphaStructures.alphaSimplex(Vi, filtration, 0.02)
@@ -101,7 +100,7 @@ for i = 2 : length(reduced_filter)
 	FV0mesh = GL.GLGrid(Vi, FV0)
 	EVmesh = GL.GLGrid(Vi, setdiff(EV, EV0), GL.COLORS[2], 1)
 	FVmesh = GL.GLGrid(Vi, setdiff(FV, FV0), GL.COLORS[7], 1)
-	GL.VIEW([EV0mesh; FV0mesh; EVmesh; FVmesh])
+	#GL.VIEW([EV0mesh; FV0mesh; EVmesh; FVmesh])
 end
 
 print_timer(AlphaStructures.to);

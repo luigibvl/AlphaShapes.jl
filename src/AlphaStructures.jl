@@ -1,13 +1,15 @@
 __precompile__()
 
 module AlphaStructures
+
 	using LinearAlgebraicRepresentation
 	using TimerOutputs
 	#using MATLAB
 	#using Delaunay #BUG in package
 	using SharedArrays
-	using Combinatorics, DataStructures
 	using Distributed, Triangle
+	using Combinatorics, DataStructures
+	using Base.Threads
 	const Lar = LinearAlgebraicRepresentation
 
 	include("alpha_complex.jl")

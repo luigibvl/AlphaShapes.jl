@@ -1,12 +1,12 @@
 using LinearAlgebraicRepresentation, ViewerGL
 using BenchmarkTools
 using Distributed
+using TimerOutputs
 
 include("../../src/AlphaStructures.jl")
 
 Lar = LinearAlgebraicRepresentation
 GL = ViewerGL
-using TimerOutputs
 
 filename = "./examples/examples3D/OBJ/teapot.obj";
 W, EVs, FVs = Lar.obj2lar(filename);
@@ -23,7 +23,7 @@ V, VV = Lar.apply(Lar.r(pi / 2, 0, 0), (W, WW)); #object rotated
 @btime AlphaStructures.alphaFilter(V);
 filtration = AlphaStructures.alphaFilter(V);
 VV, EV, FV, TV = AlphaStructures.alphaSimplex(V, filtration, 3.7)
-@btime VV, EV, FV, TV = AlphaStructures.alphaSimplex(V, filtration, 3.7)
+#@btime VV, EV, FV, TV = AlphaStructures.alphaSimplex(V, filtration, 3.7)
 
 GL.VIEW([
     GL.GLGrid(V, EV, GL.COLORS[1], 0.6) # White
@@ -41,11 +41,10 @@ reduced_filter = [reduced_filter; max(filter_key...)]
 α=0.0
 
 for α in reduced_filter
-    #@code_warntype AlphaStructures.alphaSimplex(V, filtration, α)
     @show α
-    @btime VVV, EEV, FFV, TTV = AlphaStructures.alphaSimplex(V, filtration, α)
+    #@btime VVV, EEV, FFV, TTV = AlphaStructures.alphaSimplex(V, filtration, α)
     VVV, EEV, FFV, TTV = AlphaStructures.alphaSimplex(V, filtration, α)
-    """
+    #=
     GL.VIEW(GL.GLExplode(
         V,
         [[[t] for t in TTV]; [[f] for f in FFV]; [[e] for e in EEV]],
@@ -55,7 +54,7 @@ for α in reduced_filter
         99,
         1,# Colors
     ))
-    """
+    =#
 end
 
-#print_timer(AlphaStructures.to);
+print_timer(AlphaStructures.to);

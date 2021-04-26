@@ -1,4 +1,3 @@
-using Base.Threads
 #===============================================================================
 #
 #	src/geometry.jl
@@ -80,7 +79,7 @@ julia> AlphaStructures.findCenter(V)
 
 # funzione ausiliaria per findcenter
 # calcola il secondo membro del numeratore se dim = 3
-function secondMember(P::Lar.Points)::Array{Float64,1}
+function secondMember3d(P::Lar.Points)::Array{Float64,1}
 	 n2 =  Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
 	   P[:, 3] - P[:, 1],
 	   Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]
@@ -90,7 +89,7 @@ end
 
 # funzione ausiliaria per findcenter
 # calcola il primo membro del numeratore se dim = 3
-function firstMember(P::Lar.Points)::Array{Float64,1}
+function firstMember3d(P::Lar.Points)::Array{Float64,1}
 	n1 =  Lar.norm(P[:, 3] - P[:, 1])^2 * Lar.cross(
 				Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]),
 				P[:, 2] - P[:, 1]
@@ -100,10 +99,20 @@ end
 
 # funzione ausiliaria per findcenter
 # calcola il denominatore se dim = 3
-function denominatore(P::Lar.Points)::Float64
+function denominatore3d(P::Lar.Points)::Float64
 	d =	2 * ( Lar.norm(
 			Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])))^2
 	return d
+end
+
+
+function deter2d(P::Lar.Points)::Array{Float64,1}
+	return (P[:, 2] - P[:, 1]) * Lar.norm(P[:, 3] - P[:, 1])^2 -
+			(P[:, 3] - P[:, 1]) * Lar.norm(P[:, 2] - P[:, 1])^2
+end
+
+function denom2d(P::Lar.Points)::Float64
+	return 2 * Lar.det([ P[:, 2] - P[:, 1]  P[:, 3] - P[:, 1] ])
 end
 
 @timeit to "findCenter" function findCenter(P::Lar.Points)::Array{Float64,1}
@@ -122,23 +131,27 @@ end
 	elseif n == 3
 		#https://www.ics.uci.edu/~eppstein/junkyard/circumcenter.html
 		if dim == 2
-			denom = 2 * Lar.det([ P[:, 2] - P[:, 1]  P[:, 3] - P[:, 1] ])
-			deter = (P[:, 2] - P[:, 1]) * Lar.norm(P[:, 3] - P[:, 1])^2 -
-					(P[:, 3] - P[:, 1]) * Lar.norm(P[:, 2] - P[:, 1])^2
+			denom=denom2d(P)
+			deter=deter2d(P)
+			# denom = 2 * Lar.det([ P[:, 2] - P[:, 1]  P[:, 3] - P[:, 1] ])
+			# deter = (P[:, 2] - P[:, 1]) * Lar.norm(P[:, 3] - P[:, 1])^2 -
+			# 		(P[:, 3] - P[:, 1]) * Lar.norm(P[:, 2] - P[:, 1])^2
+
+
 			numer = [- deter[2], deter[1]]
 			center = P[:, 1] + numer / denom
 
 		elseif dim == 3
 			#circumcenter of a triangle in R^3
 
-			# n1= @spawn firstMember(P)
-			# n2= @spawn secondMember(P)
+			# n1= @spawn firstMember3d(P)
+			# n2= @spawn secondMember3d(P)
 			#
 			# n1=fetch(n1)
 			# n2=fetch(n2)
 
-			n1 = firstMember(P)
-			n2 = secondMember(P)
+			n1 = firstMember3d(P)
+			n2 = secondMember3d(P)
 
 			numer = n1+n2
 
@@ -159,7 +172,7 @@ end
 			# denom=fetch(denom)
 
 
-			denom= denominatore(P)
+			denom= denominatore3d(P)
 			center = P[:, 1] + numer / denom
 		end
 
@@ -179,9 +192,12 @@ end
 
 		α = Lar.det([P; ones(1, 4)])
 		sq = sum(abs2, P, dims = 1)
-		Dx =  Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
-		Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
-		Dz = Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
+		# Dx =  Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
+		# Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
+		# Dz = Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
+		Dx= dx(P,sq)
+		Dy= dy(P,sq)
+		Dz= dz(P,sq)
 		center = [Dx; Dy; Dz]/2α
 	end
 
@@ -189,6 +205,17 @@ end
 #	AlphaStructures.foundCenter([P[:,i] for i = 1 : size(P, 2)])[:,:]
 end
 
+function dx(P::Lar.Points,sq::Array{Float64,2})::Float64
+	return Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
+end
+
+function dy(P::Lar.Points,sq::Array{Float64,2})::Float64
+	return Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
+end
+
+function dz(P::Lar.Points,sq::Array{Float64,2})::Float64
+	return Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
+end
 #-------------------------------------------------------------------------------
 
 """
@@ -219,8 +246,7 @@ Possible choices are:
 
 	radlist = SharedArray{Float64}(m)
 
-	#@sync
-	 for col = 1 : m
+	@sync @distributed for col = 1 : m
 		# rc = @spawn findRadius([Psimplex P[:,col]], true)
 		# r, c = fetch(rc)
 
@@ -236,10 +262,7 @@ Possible choices are:
 		radlist[col] = ((-1)^(1 + sameSign)) * r
 	end
 
-	# rc = @spawn findmin(radlist)
-	# radius, closestidx=fetch(rc)
-
-	radius, closestidx=findmin(radlist)
+	radius, closestidx = findmin(radlist)
 
 	if radius == Inf
 		closestidx = nothing
@@ -302,20 +325,10 @@ julia> AlphaStructures.findRadius(V, true)
 	if any(isnan, c)
 		r = Inf
 	else
-		#per paralellizzare il metodo abbiamo trasformato questo codice nel
-		#codice che segue
 		 r = round(
 		 	findmin([Lar.norm(c - P[:, i]) for i = 1 : size(P, 2)])[1],
 		 	digits = digits
 		 )
-
-
-		#@sync for i = 1 : size(P, 2)
-		#	 push!(norm,Lar.norm(c - P[:, i]))
-		#end
-		#minNorms = findmin(norm)
-		#r = round(minNorms[1],digits = digits)
-
 	end
 	if center
 		return r, c
@@ -360,24 +373,11 @@ julia> AlphaStructures.matrixPerturbation(V)
 	end
 
 	if row == [0]
-		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
-		#codice che segue
 		row = [i for i = 1 : size(M, 1)]
-
-		#@sync for i=1 : size(M,1)
-		#	push!(row,i)
-		#end
-
 	end
+	
 	if col == [0]
-		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
-		#codice che segue
 		col = [i for i = 1 : size(M, 2)]
-
-		#@sync for i=1 :size(M,2)
-		#	push!(col,i)
-		#end
-
 	end
 
 	N = copy(M)
@@ -422,35 +422,36 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		point::Array{Float64,1}
 	)::Array{Int64,1}
 
+
 	dim, n = size(P)
 	noV = size(face, 2)
 	@assert dim <= 3 "oppositeHalfSpacePoints: Not yet coded."
 	@assert noV == dim "oppositeHalfSpacePoints:
 		Cannot determine opposite to non hyperplanes."
-	opposite=[]
+	opposite = Array{Int64,1}()
+
 	if dim == 1
 		threshold = face[1]
 		if point[1] < threshold
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			opposite = [i for i = 1 : n if P[1, i] > threshold]
+			#opposite = [i for i = 1 : n if P[1, i] > threshold]
 
-			#@sync for i=1 : n
-			#	if P[1,i] > threshold
-			#		push!(opposite,i)
-			#	end
-			#end
+			@inbounds @simd for i=1 : n
+				if P[1,i] > threshold
+					push!(opposite,i)
+				end
+			end
 
 		else
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			opposite = [i for i = 1 : n if P[1, i] < threshold]
-
-			#@sync for i =1 : n
-			#	if P[1,i]< threshold
-			#		push!(opposite,i)
-			#	end
-			#end
+			#opposite = [i for i = 1 : n if P[1, i] < threshold]
+			@inbounds @simd for i =1 : n
+				if P[1,i]< threshold
+					push!(opposite,i)
+				end
+			end
 
 		end
 	elseif dim == 2
@@ -463,37 +464,30 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			side = sign(m * point[1] + q - point[2])
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			opposite =
-				[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
-			#@sync for i=1 : n
-			#	if side * (m * P[1, i] + q - P[2, i]) < 0
-			#		push!(opposite,i)
-			#	end
-			#end
+			#opposite =
+			#	[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
+
+
+			@inbounds @simd for i=1 : n
+				if side * (m * P[1, i] + q - P[2, i]) < 0
+					push!(opposite,i)
+				end
+			end
 
 		else
 			q = face[1, 1]
 			side = sign(point[1] - q)
-			opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
+			#opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
 
-			 #@sync for i = 1 : n
-			#	if side * (P[1, i] - q) < 0
-			#		push!(opposite,i)
-			#	end
-			#end
+			 @inbounds @simd for i = 1 : n
+				if side * (P[1, i] - q) < 0
+					push!(opposite,i)
+				end
+			end
 
 		end
 
 	elseif dim == 3
-		# axis = @spawn Lar.cross(
-		# 	face[:, 2] - face[:, 1],
-		# 	face[:, 3] - face[:, 1]
-		# )
-		# axis=fetch(axis)
-		# off = @spawn Lar.dot(axis, face[:, 1])
-		# off=fetch(off)
-		# position = @spawn Lar.dot(point, axis)
-		# position=fetch(position)
 
 		axis =  Lar.cross(
 			face[:, 2] - face[:, 1],
@@ -502,23 +496,22 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		off =  Lar.dot(axis, face[:, 1])
 		position =  Lar.dot(point, axis)
 
-
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
 		if position < off
-			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
-			#@sync for i=1 : size(P,2)
-			#	if Lar.dot(P[:,i], axis) > off
-			#		push!(opposite,i)
-			#	end
-			#end
+			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
+			@inbounds @simd for i=1:size(P,2)
+				if Lar.dot(P[:,i], axis) > off
+					push!(opposite,i)
+				end
+			end
 		else
-			opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
-			#@sync for i = 1:size(P, 2)
-			#	if Lar.dot(P[:,i], axis) < off
-			#		push!(opposite,i)
-			#	end
-			#end
+			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
+			@inbounds @simd for i = 1:size(P, 2)
+				if Lar.dot(P[:,i], axis) < off
+					push!(opposite,i)
+				end
+			end
 		end
 	end
 
@@ -526,22 +519,8 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		i for i in opposite
 		if sum([P[:, i] == face[:, j] for j = 1 : noV]) == 0
 	]
-	"""
-	faces=[]
-	for i in opposite
-		check= 0
-		for j = 1 : noV
-			if P[: , i] == face[:,j]
-				check=check + 1
-			end
-		end
-		if check == 0
-			push!(faces,1)
-		end
-	end
-	return faces
-	"""
 end
+
 
 #-------------------------------------------------------------------------------
 
@@ -567,32 +546,20 @@ the normal `axis` and the contant term `off`. It returns:
 	#per paralellizzare il metodo abbiamo trasformato questo codice nel
 	#codice che segue
 
-	"""
-	pos=[]
-	@sync for i in face
+
+	pos= Array{Int64,1}()
+	@inbounds @simd for i in face
 		if P[axis,i] > off
 			push!(pos,1)
 		else
 			push!(pos,0)
 		end
 	end
-	"""
-	pos = [P[axis, i] > off for i in face]
+
+	#pos = [P[axis, i] > off for i in face]
 
 	if sum([P[axis, i] == off for i in face]) == length(pos)
 	 	position = 0
-
-	"""
-	S=0
-	@sync for i in face
-		if P[axis,i] == off
-			S+=1
-		end
-	end
-
-	if S==length(pos)
-		position= 0
-	"""
 	elseif sum(pos) == 0
 		position = -1
 	elseif sum(pos) == length(pos)

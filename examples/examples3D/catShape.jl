@@ -1,13 +1,13 @@
-using AlphaStructures
+include("../../src/AlphaStructures.jl")
 using LinearAlgebraicRepresentation, ViewerGL
 Lar = LinearAlgebraicRepresentation
 GL =  ViewerGL
 
 include("./OBJ/cat.jl")
 ## Equivalent to the following instructions:
-# V = Lar.obj2lar("examples/OBJ/cat.obj")[1];
-# VS = AlphaStructures.matrixPerturbation(V);
-# DT = AlphaStructures.delaunayWall(V);
+#V = Lar.obj2lar("./examples/examples3D/OBJ/cat.obj")[1];
+#VS = AlphaStructures.matrixPerturbation(V);
+#DT = AlphaStructures.delaunayWall(V);
 
 filtration = AlphaStructures.alphaFilter(VS, DT);
 filter_key = sort(unique(values(filtration)))
@@ -49,7 +49,7 @@ end
 # Appearing Colors
 #
 
-#=
+
 for i = 2 : length(reduced_filter)
 	VV0, EV0, FV0, TV0 = AlphaStructures.alphaSimplex(VS, filtration, reduced_filter[i-1])
 	VV,  EV,  FV,  TV = AlphaStructures.alphaSimplex(VS, filtration, reduced_filter[i])
@@ -61,4 +61,3 @@ for i = 2 : length(reduced_filter)
 	TVmesh = GL.GLGrid(VS, setdiff(TV, TV0), GL.COLORS[12], 1)
 	GL.VIEW([EV0mesh; FV0mesh; TV0mesh; EVmesh; FVmesh; TVmesh])
 end
-=#
