@@ -131,8 +131,8 @@ end
 	elseif n == 3
 		#https://www.ics.uci.edu/~eppstein/junkyard/circumcenter.html
 		if dim == 2
-			denom=denom2d(P)
-			deter=deter2d(P)
+			denom = denom2d(P)
+			deter = deter2d(P)
 			# denom = 2 * Lar.det([ P[:, 2] - P[:, 1]  P[:, 3] - P[:, 1] ])
 			# deter = (P[:, 2] - P[:, 1]) * Lar.norm(P[:, 3] - P[:, 1])^2 -
 			# 		(P[:, 3] - P[:, 1]) * Lar.norm(P[:, 2] - P[:, 1])^2
@@ -172,7 +172,7 @@ end
 			# denom=fetch(denom)
 
 
-			denom= denominatore3d(P)
+			denom = denominatore3d(P)
 			center = P[:, 1] + numer / denom
 		end
 
@@ -192,12 +192,12 @@ end
 
 		α = Lar.det([P; ones(1, 4)])
 		sq = sum(abs2, P, dims = 1)
-		# Dx =  Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
-		# Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
-		# Dz = Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
-		Dx= dx(P,sq)
-		Dy= dy(P,sq)
-		Dz= dz(P,sq)
+		Dx =  Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
+		Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
+		Dz = Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
+		# Dx= dx(P,sq)
+		# Dy= dy(P,sq)
+		# Dz= dz(P,sq)
 		center = [Dx; Dy; Dz]/2α
 	end
 
@@ -247,9 +247,6 @@ Possible choices are:
 	radlist = SharedArray{Float64}(m)
 
 	@sync @distributed for col = 1 : m
-		# rc = @spawn findRadius([Psimplex P[:,col]], true)
-		# r, c = fetch(rc)
-
 		r, c = findRadius([Psimplex P[:,col]], true)
 
 		sameSign = (
@@ -375,7 +372,7 @@ julia> AlphaStructures.matrixPerturbation(V)
 	if row == [0]
 		row = [i for i = 1 : size(M, 1)]
 	end
-	
+
 	if col == [0]
 		col = [i for i = 1 : size(M, 2)]
 	end
