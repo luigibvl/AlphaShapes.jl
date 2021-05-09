@@ -3,3 +3,5 @@ DataStructures
 LinearAlgebraicRepresentation
 Distributed
 SharedArrays
+TimerOutputs
+Triangle
