@@ -428,18 +428,11 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 			P[:, Psubset],
 			newaxis,
 			Pblack,
-			#[[findall(Psubset.==p)[1] for p in σ] for σ in AFL],
 			newAFL,
-			# Dict([
-			# 	[findall(Psubset.==p)[1] for p in k] => v
-			# 	 for (k,v) in tetraDict
-			# 		if k ⊆ Psubset
-			# ]),
 			newTetraDict,
 			DEBUG = DEBUG
 		)
 
-	#DT = fetch(DT)
 	if DEBUG @show "Step Out with " DT end
 
 	return [[Psubset[i] for i in σ] for σ in DT]

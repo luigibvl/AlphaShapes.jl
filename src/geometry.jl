@@ -133,45 +133,15 @@ end
 		if dim == 2
 			denom = denom2d(P)
 			deter = deter2d(P)
-			# denom = 2 * Lar.det([ P[:, 2] - P[:, 1]  P[:, 3] - P[:, 1] ])
-			# deter = (P[:, 2] - P[:, 1]) * Lar.norm(P[:, 3] - P[:, 1])^2 -
-			# 		(P[:, 3] - P[:, 1]) * Lar.norm(P[:, 2] - P[:, 1])^2
-
-
 			numer = [- deter[2], deter[1]]
 			center = P[:, 1] + numer / denom
 
 		elseif dim == 3
-			#circumcenter of a triangle in R^3
-
-			# n1= @spawn firstMember3d(P)
-			# n2= @spawn secondMember3d(P)
-			#
-			# n1=fetch(n1)
-			# n2=fetch(n2)
 
 			n1 = firstMember3d(P)
 			n2 = secondMember3d(P)
 
 			numer = n1+n2
-
-			# numer = Lar.norm(P[:, 3] - P[:, 1])^2 * Lar.cross(
-			# 			Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]),
-			# 			P[:, 2] - P[:, 1]
-			# 		) +
-			# 		 Lar.norm(P[:, 2] - P[:, 1])^2 * Lar.cross(
-			# 	  		P[:, 3] - P[:, 1],
-			# 			Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1]
-			# 		)
-			# )
-			#numer=fetch(numer)
-			# denom = 2 * ( Lar.norm(
-			# 	Lar.cross(P[:, 2] - P[:, 1], P[:, 3] - P[:, 1])
-			# ))^2
-			# denom=@spawn denominatore(P)
-			# denom=fetch(denom)
-
-
 			denom = denominatore3d(P)
 			center = P[:, 1] + numer / denom
 		end
@@ -180,24 +150,12 @@ end
 		# https://people.sc.fsu.edu/~jburkardt/presentations
 		#	/cg_lab_tetrahedrons.pdf
 		# page 6 (matrix are transposed)
-		# α =Threads.@spawn Lar.det([P; ones(1, 4)])
-		# α=fetch(α)
-		# sq = sum(abs2, P, dims = 1)
-		# Dx = Threads.@spawn Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
-		# Dx= fetch(Dx)
-		# Dy =Threads.@spawn Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
-		# Dy= fetch(Dy)
-		# Dz =Threads.@spawn Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
-		# Dz=fetch(Dz)
 
 		α = Lar.det([P; ones(1, 4)])
 		sq = sum(abs2, P, dims = 1)
 		Dx =  Lar.det([sq; P[2:2,:]; P[3:3,:]; ones(1, 4)])
 		Dy = Lar.det([P[1:1,:]; sq; P[3:3,:]; ones(1, 4)])
 		Dz = Lar.det([P[1:1,:]; P[2:2,:]; sq; ones(1, 4)])
-		# Dx= dx(P,sq)
-		# Dy= dy(P,sq)
-		# Dz= dz(P,sq)
 		center = [Dx; Dy; Dz]/2α
 	end
 
@@ -432,7 +390,6 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		if point[1] < threshold
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite = [i for i = 1 : n if P[1, i] > threshold]
 
 			@inbounds @simd for i=1 : n
 				if P[1,i] > threshold
@@ -443,7 +400,6 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		else
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite = [i for i = 1 : n if P[1, i] < threshold]
 			@inbounds @simd for i =1 : n
 				if P[1,i]< threshold
 					push!(opposite,i)
@@ -461,9 +417,6 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 			side = sign(m * point[1] + q - point[2])
 			#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 			#codice che segue
-			#opposite =
-			#	[i for i = 1 : n if side * (m * P[1, i] + q - P[2, i]) < 0]
-
 
 			@inbounds @simd for i=1 : n
 				if side * (m * P[1, i] + q - P[2, i]) < 0
@@ -474,7 +427,6 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		else
 			q = face[1, 1]
 			side = sign(point[1] - q)
-			#opposite = [i for i = 1 : n if side * (P[1, i] - q) < 0]
 
 			 @inbounds @simd for i = 1 : n
 				if side * (P[1, i] - q) < 0
@@ -496,14 +448,12 @@ julia> oppositeHalfSpacePoints(V, V[:, [1; 3; 4]], V[:, 2])
 		#Per parallelizzare il metodo, abbiamo trasformato questo codice nel
 		#codice che segue
 		if position < off
-			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) > off]
 			@inbounds @simd for i=1:size(P,2)
 				if Lar.dot(P[:,i], axis) > off
 					push!(opposite,i)
 				end
 			end
 		else
-			#opposite = [i for i = 1:size(P, 2) if Lar.dot(P[:,i], axis) < off]
 			@inbounds @simd for i = 1:size(P, 2)
 				if Lar.dot(P[:,i], axis) < off
 					push!(opposite,i)
@@ -544,7 +494,7 @@ the normal `axis` and the contant term `off`. It returns:
 	#codice che segue
 
 
-	pos= Array{Int64,1}()
+	pos = Array{Int64,1}()
 	@inbounds @simd for i in face
 		if P[axis,i] > off
 			push!(pos,1)
@@ -552,8 +502,6 @@ the normal `axis` and the contant term `off`. It returns:
 			push!(pos,0)
 		end
 	end
-
-	#pos = [P[axis, i] > off for i in face]
 
 	if sum([P[axis, i] == off for i in face]) == length(pos)
 	 	position = 0

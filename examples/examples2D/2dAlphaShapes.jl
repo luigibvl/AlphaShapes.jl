@@ -73,14 +73,14 @@ reduced_filter = [reduced_filter; max(filter_key...)]
 for α in reduced_filter
 	@show α
 	VV,EV,FV = AlphaStructures.alphaSimplex(Vi, filtration, α)
-	GL.VIEW(
-		GL.GLExplode(
-			Vi,
-			[[[f] for f in FV]; [[e] for e in EV]],
-			1., 1., 1.,	# Explode Ratio
-			99, 1		# Colors
-		)
-	)
+	# GL.VIEW(
+	# 	GL.GLExplode(
+	# 		Vi,
+	# 		[[[f] for f in FV]; [[e] for e in EV]],
+	# 		1., 1., 1.,	# Explode Ratio
+	# 		99, 1		# Colors
+	# 	)
+	# )
 end
 
 #
