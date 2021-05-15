@@ -8,7 +8,7 @@ Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 LinearAlgebraicRepresentation = "95167b0c-186a-594b-a231-52369c6de044"
-TimerOutputs = "7876af07-990d-54b4-ab0e-23690620f79a"
+#TimerOutputs = "7876af07-990d-54b4-ab0e-23690620f79a"
 SharedArrays = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 #Triangle = "8dfed984-e12c-5e98-81e1-65c1834f0b40"
 
