@@ -213,5 +213,7 @@ uuid = "81def892-9a0e-5fdd-b105-ffc91e053289"
 version = "1.2.0"
 
 [[TimerOutputs]]
-uuid = "81def092-9e0e-5fsd-b125-ffc99e153289"
+deps = ["Printf"]
+git-tree-sha1 = "f458ca23ff80e46a630922c555d838303e4b9603"
+uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 version = "0.5.7"
