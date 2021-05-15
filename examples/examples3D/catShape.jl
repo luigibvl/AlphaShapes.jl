@@ -1,4 +1,4 @@
-include("../../src/AlphaStructures.jl")
+include("../../src/AlphaShapes.jl")
 using LinearAlgebraicRepresentation, ViewerGL
 Lar = LinearAlgebraicRepresentation
 GL =  ViewerGL
@@ -9,11 +9,11 @@ include("./OBJ/cat.jl")
 #VS = AlphaStructures.matrixPerturbation(V);
 #DT = AlphaStructures.delaunayWall(V);
 
-filtration = AlphaStructures.alphaFilter(VS, DT);
+filtration = AlphaShapes.alphaFilter(VS, DT);
 filter_key = sort(unique(values(filtration)))
 
 
-VV, EV, FV, TV = AlphaStructures.alphaSimplex(VS, filtration, 0.9)
+VV, EV, FV, TV = AlphaShapes.alphaSimplex(VS, filtration, 0.9)
 GL.VIEW(
 	[
 		GL.GLGrid(VS, EV, GL.COLORS[1], 0.6) # White
@@ -33,7 +33,7 @@ points = [[p] for p in VV]
 
 for α in reduced_filter
 	@show α
-	VV,EV,FV,TV = AlphaStructures.alphaSimplex(VS, filtration, α)
+	VV,EV,FV,TV = AlphaShapes.alphaSimplex(VS, filtration, α)
 	GL.VIEW(
 		GL.GLExplode(
 			VS,
@@ -51,8 +51,8 @@ end
 
 
 for i = 2 : length(reduced_filter)
-	VV0, EV0, FV0, TV0 = AlphaStructures.alphaSimplex(VS, filtration, reduced_filter[i-1])
-	VV,  EV,  FV,  TV = AlphaStructures.alphaSimplex(VS, filtration, reduced_filter[i])
+	VV0, EV0, FV0, TV0 = AlphaShapes.alphaSimplex(VS, filtration, reduced_filter[i-1])
+	VV,  EV,  FV,  TV = AlphaShapes.alphaSimplex(VS, filtration, reduced_filter[i])
 	EV0mesh = GL.GLGrid(VS, EV0)
 	FV0mesh = GL.GLGrid(VS, FV0)
 	TV0mesh = GL.GLGrid(VS, TV0)

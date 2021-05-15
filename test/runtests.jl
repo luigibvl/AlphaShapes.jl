@@ -1,4 +1,4 @@
-include("../src/AlphaStructures.jl")
+include("../src/AlphaShapes.jl")
 using LinearAlgebraicRepresentation
 Lar = LinearAlgebraicRepresentation
 

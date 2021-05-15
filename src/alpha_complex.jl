@@ -33,13 +33,13 @@ Return ordered collection of pairs `(alpha charatteristic, complex)`.
 
 This method evaluates the `α`-filter over the sites `S`.
 If a Delaunay Triangulation `DT` is not specified than it is evaluated
-via `AlphaStructures.delaunayTriangulation()`.
+via `AlphaShapes.delaunayTriangulation()`.
 
 # Examples
 ```jldoctest
 julia> V = [1. 2. 1. 2.; 0. 0. 1. 2. ];
 
-julia> AlphaStructures.alphaFilter(V)
+julia> AlphaShapes.alphaFilter(V)
 SortedMultiDict(Base.Order.ForwardOrdering(),
 	0.0 => [1],
 	0.0 => [2],
@@ -74,7 +74,7 @@ SortedMultiDict(Base.Order.ForwardOrdering(),
 
 	# 2 - Delaunay triangulation of ``V``
 	if isempty(DT)
-		DT =Threads.@spawn AlphaStructures.delaunayTriangulation(V)
+		DT =Threads.@spawn AlphaShapes.delaunayTriangulation(V)
 		DT=fetch(DT)
 	end
 
@@ -86,7 +86,7 @@ SortedMultiDict(Base.Order.ForwardOrdering(),
 		if ind % 500000 == 0
 			println(ind," simplices processed of ", n_upsimplex)
 		end
-		AlphaStructures.processuppersimplex(V,upper_simplex,filtration; digits = digits)
+		AlphaShapes.processuppersimplex(V,upper_simplex,filtration; digits = digits)
 		ind = ind + 1
 	end
 
@@ -110,7 +110,7 @@ Process the upper simplex.
 		filtration::DataStructures.SortedDict{};
 		digits=64)
 
-	α_char = AlphaStructures.findRadius(V[:, up_simplex], digits=digits);
+	α_char = AlphaShapes.findRadius(V[:, up_simplex], digits=digits);
 	insert!(filtration, up_simplex, α_char)
 
 	d = length(up_simplex)-1
@@ -118,7 +118,7 @@ Process the upper simplex.
 		# It gives back combinations in natural order
 		newsimplex = collect(Combinatorics.combinations(up_simplex,d))
 		@simd for lowsimplex in newsimplex
-			AlphaStructures.processlowsimplex(V, up_simplex, lowsimplex, filtration; digits=digits)
+			AlphaShapes.processlowsimplex(V, up_simplex, lowsimplex, filtration; digits=digits)
 		end
 	end
 end
@@ -141,10 +141,10 @@ Process the lower simplex knowing the upper.
 	filtration::DataStructures.SortedDict{};
 	digits=64)
 
-	α_char = AlphaStructures.findRadius(V[:, lowsimplex], digits=digits)
+	α_char = AlphaShapes.findRadius(V[:, lowsimplex], digits=digits)
 	point = V[:, setdiff(up_simplex, lowsimplex)]
 
-	if AlphaStructures.vertexInCircumball(V[:, lowsimplex], α_char, point)
+	if AlphaShapes.vertexInCircumball(V[:, lowsimplex], α_char, point)
 		filtration[lowsimplex] = filtration[up_simplex]
 
 	elseif !haskey(filtration, lowsimplex)
@@ -157,7 +157,7 @@ Process the lower simplex knowing the upper.
 		# It gives back combinations in natural order
 		newsimplex =  collect(Combinatorics.combinations(lowsimplex,d))
 		@simd for simplex in newsimplex
-			 AlphaStructures.processlowsimplex(V, lowsimplex, simplex, filtration, digits=digits)
+			 AlphaShapes.processlowsimplex(V, lowsimplex, simplex, filtration, digits=digits)
 		end
 	end
 end

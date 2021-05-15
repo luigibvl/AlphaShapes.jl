@@ -86,7 +86,7 @@ julia> P = [
  0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0
 ];
 
-julia> DT = AlphaStructures.delaunayWall(P)
+julia> DT = AlphaShapes.delaunayWall(P)
 6-element Array{Array{Int64,1},1}:
  [1, 2, 4, 5]
  [1, 3, 4, 5]
@@ -105,12 +105,12 @@ julia> DT = AlphaStructures.delaunayWall(P)
 	DT::Array{Array{Int64,1},1},
 	DEBUG::Bool)::Array{Array{Int64,1},1}
 
-	σ = sort(AlphaStructures.firstDeWallSimplex(P, ax, off, DEBUG = DEBUG))
+	σ = sort(AlphaShapes.firstDeWallSimplex(P, ax, off, DEBUG = DEBUG))
 	push!(DT, σ)
-	AFL = @spawn AlphaStructures.simplexFaces(σ)
+	AFL = @spawn AlphaShapes.simplexFaces(σ)
 	AFL = fetch(AFL)
 
-	AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
+	AlphaShapes.updateTetraDict!(P, tetraDict, AFL, σ)
 	return AFL
 end
 
@@ -130,7 +130,7 @@ end
 	AFLα = Array{Int64,1}[]		# (d-1)faces intersecting the Wall
 	AFLplus = Array{Int64,1}[]  # (d-1)faces in positive Wall half-space
 	AFLminus = Array{Int64,1}[] # (d-1)faces in positive Wall half-space
-	off =  AlphaStructures.findMedian(P, ax)
+	off =  AlphaShapes.findMedian(P, ax)
 
 	if !isempty(Pblack) Pext = [P Pblack] else Pext = copy(P) end
 
@@ -146,7 +146,7 @@ end
 	end
 
 	# 2 - Build `AFL*` according to the axis `ax` with constant term `off`
-	AlphaStructures.updateAFL!(
+	AlphaShapes.updateAFL!(
 		P, AFL, AFLα, AFLplus, AFLminus, ax, off, DEBUG = DEBUG
 	)
 
@@ -155,21 +155,21 @@ end
 		# if face ∈ keys(tetraDict) oppoint = tetraDict[face]
 		# else Pselection = setdiff([i for i = 1 : n], face) end
 
-		σ =  AlphaStructures.findWallSimplex(
+		σ =  AlphaShapes.findWallSimplex(
 				Pext, AFLα[1], tetraDict[AFLα[1]], size(P, 2), DEBUG = DEBUG
 			)
 		if σ != nothing && σ ∉ DT
 			push!(DT, σ)
-			AFL = @spawn AlphaStructures.simplexFaces(σ)
+			AFL = @spawn AlphaShapes.simplexFaces(σ)
 			AFL = fetch(AFL)
 
-			AlphaStructures.updateTetraDict!(P, tetraDict, AFL, σ)
+			AlphaShapes.updateTetraDict!(P, tetraDict, AFL, σ)
 			# Split σ's Faces according in semi-spaces
-			AlphaStructures.updateAFL!(
+			AlphaShapes.updateAFL!(
 				P, AFL, AFLα, AFLplus, AFLminus, ax, off, DEBUG=DEBUG
 			)
 		else
-			@assert AlphaStructures.updatelist!(AFLα, AFLα[1]) == false "delaunayWall:
+			@assert AlphaShapes.updatelist!(AFLα, AFLα[1]) == false "delaunayWall:
 				Something unespected happends while removing a face."
 		end
 	end
@@ -216,7 +216,7 @@ julia> P = [
  0. 0. 0. 1. 2.
 ];
 
-julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
+julia> newtetra = AlphaShapes.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 4-element Array{Int64,1}:
  2
  3
@@ -237,7 +237,7 @@ julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 	# Find the points in the halfspace defined by `face` that do not
 	#  containsother the other point of the simplex.
 	Pselection =
-		@spawn AlphaStructures.oppositeHalfSpacePoints(P, P[:, face], oppoint)
+		@spawn AlphaShapes.oppositeHalfSpacePoints(P, P[:, face], oppoint)
 	Pselection = fetch(Pselection)
 
 
@@ -250,7 +250,7 @@ julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 
 	# Find the Closest Point in the other halfspace with respect to σ
 	#  according to dd-distance.
-	idxbase = @spawn Pselection[ AlphaStructures.findClosestPoint(
+	idxbase = @spawn Pselection[ AlphaShapes.findClosestPoint(
 		P[:, face], P[:, Pselection], metric = "dd"
 	) ]
 	idxbase=fetch(idxbase)
@@ -267,7 +267,7 @@ julia> newtetra = AlphaStructures.findWallSimplex(P,[2,3,4],[0., 0., 0.])
 	if DEBUG @show "Found face" σ end
 
 	# Check the simplex correctness
-	radius, center = AlphaStructures.findRadius(P[:, σ], true)
+	radius, center = AlphaShapes.findRadius(P[:, σ], true)
 
 	for i = 1 : size(P, 2)
 		if Lar.norm(center - P[:, i]) < radius - 1.e-14
@@ -303,7 +303,7 @@ julia> V = [
 	0.0 0.0 0.0 1.0 2.0
 ];
 
-julia> firstDeWallSimplex(V, 1, AlphaStructures.findMedian(V,1))
+julia> firstDeWallSimplex(V, 1, AlphaShapes.findMedian(V,1))
 4-element Array{Int64,1}:
  1
  2
@@ -344,7 +344,7 @@ julia> firstDeWallSimplex(V, 1, AlphaStructures.findMedian(V,1))
 	Pselection = findall(x -> x > off, P[ax, :])
 
     @inbounds @simd for d = 1 : dim
-		idxbase = @spawn AlphaStructures.findClosestPoint(Psimplex, P[:, Pselection])
+		idxbase = @spawn AlphaShapes.findClosestPoint(Psimplex, P[:, Pselection])
 		idxbase = fetch(idxbase)
 
 		@assert !isnothing(idxbase) "firstDeWallSimplex:
@@ -356,7 +356,7 @@ julia> firstDeWallSimplex(V, 1, AlphaStructures.findMedian(V,1))
     end
 
     # Correctness check
-	radius, center = AlphaStructures.findRadius(Psimplex, true)
+	radius, center = AlphaShapes.findRadius(Psimplex, true)
 
     for i = 1 : n
 		@assert Lar.norm(center - P[:, i]) >= radius "firstDeWallSimplex:
@@ -424,7 +424,7 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 	newAFL=fetch(newAFL)
 	newTetraDict= @spawn findTetradict(Psubset,tetraDict)
 	newTetraDict=fetch(newTetraDict)
-	DT = AlphaStructures.delaunayWall(
+	DT = AlphaShapes.delaunayWall(
 			P[:, Psubset],
 			newaxis,
 			Pblack,
@@ -480,13 +480,13 @@ If the keyword argument `DEBUG` is set to true than all the procedure is shown.
 	)::Bool
 
 	@simd for face in newσ
-		inters = AlphaStructures.planarIntersection(P, face, ax, off)
+		inters = AlphaShapes.planarIntersection(P, face, ax, off)
     	if inters == 0 # intersected by plane α
-			AlphaStructures.updatelist!(AFLα, face)
+			AlphaShapes.updatelist!(AFLα, face)
 		elseif inters == -1 # in NegHalfspace(α)
-        	AlphaStructures.updatelist!(AFLminus, face)
+        	AlphaShapes.updatelist!(AFLminus, face)
     	elseif inters == 1 # in PosHalfspace(α)
-        	AlphaStructures.updatelist!(AFLplus, face)
+        	AlphaShapes.updatelist!(AFLplus, face)
     	else
 			return false
 		end

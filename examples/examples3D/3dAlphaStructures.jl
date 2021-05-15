@@ -3,7 +3,7 @@ using BenchmarkTools
 using Distributed
 using TimerOutputs
 
-include("../../src/AlphaStructures.jl")
+include("../../src/AlphaShapes.jl")
 
 Lar = LinearAlgebraicRepresentation
 GL = ViewerGL
@@ -20,9 +20,9 @@ GL.VIEW([
 ]);
 
 V, VV = Lar.apply(Lar.r(pi / 2, 0, 0), (W, WW)); #object rotated
-@btime AlphaStructures.alphaFilter(V);
-filtration = AlphaStructures.alphaFilter(V);
-VV, EV, FV, TV = AlphaStructures.alphaSimplex(V, filtration, 3.7)
+@btime AlphaShapes.alphaFilter(V);
+filtration = AlphaShapes.alphaFilter(V);
+VV, EV, FV, TV = AlphaShapes.alphaSimplex(V, filtration, 3.7)
 
 GL.VIEW([
     GL.GLGrid(V, EV, GL.COLORS[1], 0.6) # White
@@ -41,7 +41,7 @@ reduced_filter = [reduced_filter; max(filter_key...)]
 
 for α in reduced_filter
     @show α
-    VVV, EEV, FFV, TTV = AlphaStructures.alphaSimplex(V, filtration, α)
+    VVV, EEV, FFV, TTV = AlphaShapes.alphaSimplex(V, filtration, α)
 
     # GL.VIEW(GL.GLExplode(
     #     V,
@@ -55,4 +55,4 @@ for α in reduced_filter
 
 end
 
-print_timer(AlphaStructures.to);
+print_timer(AlphaShapes.to);

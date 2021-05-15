@@ -69,7 +69,7 @@ julia> V = [
  0.0 0.0 1.0 0.0
  0.0 0.0 0.0 1.0
 ];
-julia> AlphaStructures.findCenter(V)
+julia> AlphaShapes.findCenter(V)
 3-element Array{Float64,1}:
  0.5
  0.5
@@ -160,7 +160,7 @@ end
 	end
 
 	return center
-#	AlphaStructures.foundCenter([P[:,i] for i = 1 : size(P, 2)])[:,:]
+#	AlphaShapes.foundCenter([P[:,i] for i = 1 : size(P, 2)])[:,:]
 end
 
 function dx(P::Lar.Points,sq::Array{Float64,2})::Float64
@@ -210,7 +210,7 @@ Possible choices are:
 		sameSign = (
 			r == Inf ||
 			metric != "dd" ||
-			isempty(AlphaStructures.oppositeHalfSpacePoints(
+			isempty(AlphaShapes.oppositeHalfSpacePoints(
 				[Psimplex P[:,col]], Psimplex, c
 			))
 		)
@@ -264,9 +264,9 @@ julia> V = [
  0.0 0.0 1.0 0.0
  0.0 0.0 0.0 1.0
 ];
-julia> AlphaStructures.findRadius(V)
+julia> AlphaShapes.findRadius(V)
  0.8660254037844386
-julia> AlphaStructures.findRadius(V, true)
+julia> AlphaShapes.findRadius(V, true)
  (0.8660254037844386, [0.5, 0.5, 0.5])
 ```
 """
@@ -275,7 +275,7 @@ julia> AlphaStructures.findRadius(V, true)
 	)::Union{Float64, Tuple{Float64, Array{Float64,1}}}
 	minNorms=0
 	norm=[]
- 	c = AlphaStructures.findCenter(P)
+ 	c = AlphaShapes.findCenter(P)
 
 	if any(isnan, c)
 		r = Inf
@@ -311,7 +311,7 @@ julia> V = [
  0.0 0.0 1.0 0.0
  0.0 0.0 0.0 1.0
 ];
-julia> AlphaStructures.matrixPerturbation(V)
+julia> AlphaShapes.matrixPerturbation(V)
 3×4 Array{Float64,2}:
  -1.27447e-11   1.0           4.68388e-11  3.08495e-11
   1.17657e-11  -4.25106e-11   1.0          5.62396e-11
@@ -525,7 +525,7 @@ _Obs._ The faces are ordered by the index value.
 # Examples
 ```jldoctest
 julia> σ = [1; 3; 2; 4];
-julia> AlphaStructures.implexFaces(σ)
+julia> AlphaShapes.implexFaces(σ)
 4-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [1, 2, 4]
@@ -555,6 +555,6 @@ Determine if a point is inner of the circumball determined by `P` points
 		point::Array{Float64,2}
 	)::Bool
 
-	center = AlphaStructures.findCenter(P)
+	center = AlphaShapes.findCenter(P)
 	return Lar.norm(point - center) <= α_char
 end

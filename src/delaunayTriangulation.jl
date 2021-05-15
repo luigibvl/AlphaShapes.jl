@@ -8,7 +8,7 @@ Return highest level simplices of Delaunay triangulation.
 
 julia> V = [1. 2. 5. 6. 0. 7.];
 
-julia> DT = AlphaStructures.delaunayTriangulation(V)
+julia> DT = AlphaShapes.delaunayTriangulation(V)
 5-element Array{Array{Int64,1},1}:
  [1, 5]
  [1, 2]
@@ -25,7 +25,7 @@ julia> V = [
  0. 0. 1. 2.
 ];
 
-julia> DT = AlphaStructures.delaunayTriangulation(V)
+julia> DT = AlphaShapes.delaunayTriangulation(V)
 2-element Array{Array{Int64,1},1}:
  [1, 2, 3]
  [2, 3, 4]
@@ -40,7 +40,7 @@ julia> V = [
  3. 1. 0. 2.
 ];
 
-julia> DT = AlphaStructures.delaunayTriangulation(V)
+julia> DT = AlphaShapes.delaunayTriangulation(V)
 1-element Array{Array{Int64,1},1}:
  [1, 2, 3, 4]
 ```
@@ -116,7 +116,7 @@ Delaunay triangulation algorithm in MATLAB.
 		upper_simplex = fetch(upper_simplex)
 
 	elseif dim == 3
-		upper_simplex = @spawn AlphaStructures.delaunayWall(V)
+		upper_simplex = @spawn AlphaShapes.delaunayWall(V)
 		upper_simplex = fetch(upper_simplex)
 
 	end

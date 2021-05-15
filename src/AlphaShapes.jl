@@ -1,6 +1,6 @@
 __precompile__()
 
-module AlphaStructures
+module AlphaShapes
 
 	using LinearAlgebraicRepresentation
 	using TimerOutputs
