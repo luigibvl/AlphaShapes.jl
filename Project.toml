@@ -10,7 +10,7 @@ Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 LinearAlgebraicRepresentation = "95167b0c-186a-594b-a231-52369c6de044"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 SharedArrays = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
-#Triangle = "8dfed984-e12c-5e98-81e1-65c1834f0b40"
+Triangle = "56f361f5-126b-55db-87fb-1c71988fcde4"
 
 [compat]
 julia = "1"
