@@ -1,22 +1,28 @@
 # AlphaShapes
-progetto del corso Parallel Computing e Distrubo 2020
-questo progetto contiene analisi e la revisione del pacchetto [AlphStructures.jl](https://github.com/eOnofri04/AlphaStructures.jl).
+Progetto per il corso Parallel Computing e Distributed 2020/2021.
+
+Questo progetto contiene analisi e la revisione del pacchetto [AlphStructures.jl](https://github.com/eOnofri04/AlphaStructures.jl).
 # AlphaStructures.jl
-[AlphStructures.jl](https://github.com/eOnofri04/AlphaStructures.jl) è una libreria di Julia e produce uno strumento per analisi della nuvola di punti.
+[AlphStructures.jl](https://github.com/eOnofri04/AlphaStructures.jl) è una libreria di Julia che consente di analizzare le nuvole di punti.
 
 Utilizzando AlphaStructures.jl si può:
 
-- Valutare "α-Shape" di una nuvola di punti.
-- Calcolare "α-Filtration" di una nuvola di punti.
-- Creare "α-Complex" di una nuvola di punti.
+- Valutare la "α-Shape" di una nuvola di punti.
+- Calcolare la "α-Filtration" di una nuvola di punti.
+- Creare la "α-Complex" di una nuvola di punti.
 - Trovare alcune nozioni di base sulla valutazione dell'omologia persistente di una nuvola di punti.
-  foto
-foto
-foto
-per maggiori informazioni può visitare: [AlphaStructures.jl Documentation](https://eonofri04.github.io/AlphaStructures.jl/dev/)
+  - foto
+  - foto
+  - foto/
+per maggiori informazioni visitare: [AlphaStructures.jl Documentation](https://eonofri04.github.io/AlphaStructures.jl/dev/)
 
 # Immigrazione da AlphStructres.jl ad AlphShapes.jl
- Gli obbiettivi di questo progetto sono stati lo studio del pacchetto [AlphStructures.jl](https://github.com/eOnofri04/AlphaStructures.jl) e tutte le funzioni e strutture dati da esso utilizzate, suddivisione delle funzioni (quando possibile) in singoli tasks, descrivere per ogni task tipologia e significato di ogni parametro e valoredi ritorno, stimare comportamenti e tempi delle singole funzioni mirando ad ottimizzarli e parallelizzare il codice utilizzando delle macro dove possibile.
+Gli obiettivi di questo progetto sono stati:
+- Lo studio del pacchetto [AlphStructures.jl](https://github.com/eOnofri04/AlphaStructures.jl) e di tutte le funzioni e strutture dati utilizzate al suo interno
+- La successiva suddivisione delle funzioni (quando possibile) in singoli tasks
+- La creazione di una descrizione per ogni task, tipologia e significato di ogni parametro e valoredi ritorno
+- Stimare comportamenti e tempi delle singole funzioni mirando ad una loro ottimizzazione
+- Parallelizzare il codice utilizzando le macro di Julia dove possibile.
 # Dipendenze
 AlphShapes.jl ha le seguenti dipendenze:
 - [LinearAlgebraicRepresentation.jl](https://github.com/cvdlab/LinearAlgebraicRepresentation.jl.git) da CVDLab
