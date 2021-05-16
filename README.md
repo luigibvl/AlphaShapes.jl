@@ -11,7 +11,7 @@ Utilizzando AlphaStructures.jl si può:
 - Calcolare la "α-Filtration" di una nuvola di punti.
 - Creare la "α-Complex" di una nuvola di punti.
 - Trovare alcune nozioni di base sulla valutazione dell'omologia persistente di una nuvola di punti.
-  - foto
+  ![2D example](https://github.com/luigibvl/AlphaShapes.jl/blob/master/docs/lar.png)
   - foto
   - foto/
 per maggiori informazioni visitare: [AlphaStructures.jl Documentation](https://eonofri04.github.io/AlphaStructures.jl/dev/)
