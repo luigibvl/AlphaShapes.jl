@@ -14,6 +14,8 @@ Utilizzando AlphaStructures.jl si può:
 
 Esempio 2D di questo package è come segue:
   ![2D example](https://github.com/luigibvl/AlphaShapes.jl/blob/master/docs/lar.png)
+Esempio 3D di questo package è come segue:
+  ![2D example](https://github.com/luigibvl/AlphaShapes.jl/blob/master/docs/teapot.png)
  
 per maggiori informazioni visitare: [AlphaStructures.jl Documentation](https://eonofri04.github.io/AlphaStructures.jl/dev/)
 
